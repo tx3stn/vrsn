@@ -1,0 +1,8 @@
+[package]
+name = "vrsn"
+version = "2.14.740"
+authors = ["me"]
+build = "build.rs"
+license = "GPL-3.0"
+repository = "https://github.com/tx3stn/vrsn"
+description = "vrsn but I learned rust to build it"

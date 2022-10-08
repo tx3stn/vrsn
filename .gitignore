@@ -1,0 +1,8 @@
+vrsn
+.DS_Store
+_null-ls*
+coverage.out
+TODO.md
+dist/
+.env
+demo.gif

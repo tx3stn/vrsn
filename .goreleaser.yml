@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+project_name: vrsn
+builds:
+  - env: [CGO_ENABLED=0]
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -X "github.com/thaffenden/vrsn/cmd.Version={{.Version}}"
+
+dockers:
+  - image_templates:
+      - "ghcr.io/thaffenden/vrsn:{{ .Version }}"
+      - "ghcr.io/thaffenden/vrsn:{{ .Major }}"
+      - "ghcr.io/thaffenden/vrsn:{{ .Major }}.{{ .Minor }}"
+      - "ghcr.io/thaffenden/vrsn:latest"
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - --label=org.opencontainers.image.title={{ .ProjectName }}
+      - --label=org.opencontainers.image.description={{ .ProjectName }}
+      - --label=org.opencontainers.image.url=https://github.com/thaffenden/vrsn
+      - --label=org.opencontainers.image.source=https://github.com/thaffenden/vrsn
+      - --label=org.opencontainers.image.version={{ .Version }}
+      - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
+      - --label=org.opencontainers.image.revision={{ .FullCommit }}
+      - --label=org.opencontainers.image.licenses=MIT
