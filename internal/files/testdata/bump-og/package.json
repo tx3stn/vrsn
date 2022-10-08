@@ -1,0 +1,9 @@
+{
+  "name": "dummy-file-to-tests",
+  "private": true,
+  "license": "nah",
+  "version": "1.0.3",
+  "dependencies": [],
+  "devDependencies": [],
+  "scripts": {}
+}

@@ -1,0 +1,69 @@
+# yamllint disable rule:line-length
+version: 2.1
+
+orbs:
+  circleci-cli: circleci/circleci-cli@volatile
+  path-filtering: circleci/path-filtering@0.1.3
+  vrsn: tx3stn/vrsn@volatile
+
+anchors:
+  ignore-main: &ignore-main
+    filters:
+      branches:
+        ignore:
+          - main
+
+  only-main: &only-main
+    filters:
+      branches:
+        only:
+          - main
+
+jobs:
+  push-dev-tagged-orb:
+    executor: circleci-cli/default
+    steps:
+      - checkout
+      - run:
+          name: publish dev tagged orb
+          command: circleci orb publish ./.circleci/orb.yml tx3stn/vrsn@dev:$CIRCLE_BRANCH --token $CIRCLECI_ORB_API_TOKEN
+
+  push-live-tagged-orb:
+    executor: circleci-cli/default
+    steps:
+      - checkout
+      - run:
+          name: publish live orb
+          command: |
+            VERSION=$(head -n 1 VERSION)
+            sed -r "s/\"%%VRSN_VERSION%%\"/$VERSION/g" -i ./.circleci/orb.yml
+            circleci orb publish ./.circleci/orb.yml "tx3stn/vrsn@$VERSION" --token $CIRCLECI_ORB_API_TOKEN
+
+  validate-orb:
+    executor: circleci-cli/default
+    steps:
+      - checkout
+      - run:
+          name: validate orb
+          command: circleci orb validate ./.circleci/orb.yml
+
+workflows:
+  pull-request-build:
+    jobs:
+      - vrsn/check-version:
+          <<: *ignore-main
+      - validate-orb:
+          <<: *ignore-main
+      - push-dev-tagged-orb:
+          <<: *ignore-main
+          requires:
+            - validate-orb
+
+  merge-to-main:
+    jobs:
+      - validate-orb:
+          <<: *only-main
+      - push-live-tagged-orb:
+          <<: *only-main
+          requires:
+            - validate-orb
