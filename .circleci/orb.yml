@@ -1,0 +1,65 @@
+version: 2.1
+
+description: Running vrsn in CircleCI.
+
+commands:
+  bump-version:
+    description: Increment the current version in the version file.
+    parameters:
+      additional-args:
+        description: Additional arguments or flags to pass to the vrsn command.
+        default: ""
+        type: string
+      type:
+        description: The version increment type you want to make.
+        type: enum
+        enum: [patch, major, minor]
+    steps:
+      - run:
+          name: check version bump is valid
+          command: vrsn bump << parameters.type >> << parameters.additional-args >>
+
+  check-version:
+    description: Check the version bump is a valid semver increment with vrsn.
+    parameters:
+      additional-args:
+        description: Additional arguments or flags to pass to the vrsn command.
+        default: ""
+        type: string
+    steps:
+      - run:
+          name: check version bump is valid
+          command: vrsn check << parameters.additional-args >>
+
+executors:
+  vrsn:
+    docker:
+      - image: ghcr.io/tx3stn/vrsn:<< parameters.version >>
+    parameters:
+      version:
+        default: "%%VRSN_VERSION%%"
+        type: string
+
+jobs:
+  check-version:
+    description: Check the version bump is a valid semver increment with vrsn.
+    parameters:
+      additional-args:
+        description: Additional arguments or flags to pass to the vrsn command.
+        default: ""
+        type: string
+      executor:
+        description: The executor to use during the check version job.
+        default: vrsn
+        type: executor
+      working-directory:
+        description: The directory the project will be checked out to.
+        default: /repo
+        type: string
+    executor: << parameters.executor >>
+    steps:
+      - checkout:
+          path: << parameters.working-directory >>
+      - check-version:
+          additional-args: << parameters.additional-args >>
+    working_directory: << parameters.working-directory >>
