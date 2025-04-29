@@ -10,6 +10,12 @@ linters:
     - exhaustruct  # more annoying than useful.
   exclusions:
     rules:
+      - path: 'internal\/flags\/vars\.go'
+        linters:
+          - gochecknoglobals
+      - path: 'internal\/files\/version\.go'
+        linters:
+          - gochecknoglobals
       - path: '_test\.go'
         linters:
           - noctx
@@ -36,12 +42,6 @@ linters:
           deny:
             - pkg: math/rand$
               desc: Use math/rand/v2 instead, see https://go.dev/blog/randv2
-        "non-main files":
-          files:
-            - "!**/main.go"
-          deny:
-            - pkg: log$
-              desc: Use log/slog instead, see https://go.dev/blog/slog
     exhaustruct:
       # List of regular expressions to exclude struct packages and their names from checks.
       # Regular expressions must match complete canonical struct package/name/structname.
