@@ -9,7 +9,7 @@ import (
 func IsGitDir(dir string) (bool, error) {
 	allFiles, err := os.ReadDir(dir)
 	if err != nil {
-		return false, fmt.Errorf("error getting files in directory: %w", err)
+		return false, fmt.Errorf("%w: %w", ErrGettingFilesInDirectory, err)
 	}
 
 	for _, file := range allFiles {

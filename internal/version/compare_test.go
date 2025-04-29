@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/tx3stn/vrsn/internal/test"
 	"github.com/tx3stn/vrsn/internal/version"
 )
 
@@ -12,44 +11,44 @@ func TestCompare(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		was         string
-		now         string
-		assertError require.ErrorAssertionFunc
+		was           string
+		now           string
+		expectedError error
 	}{
 		"ReturnsVersionNotBumpedErrorWhenVersionsAreTheSame": {
-			was:         "1.0.0",
-			now:         "1.0.0",
-			assertError: test.IsSentinelError(version.ErrVersionNotBumped),
+			was:           "1.0.0",
+			now:           "1.0.0",
+			expectedError: version.ErrVersionNotBumped,
 		},
 		"ReturnsErrorWhenWasFailsValidation": {
-			was:         "",
-			now:         "1.1.1",
-			assertError: require.Error,
+			was:           "",
+			now:           "1.1.1",
+			expectedError: version.ErrNoVersionParts,
 		},
 		"ReturnsErrorWhenNowFailsValidation": {
-			was:         "1.1.1",
-			now:         "",
-			assertError: require.Error,
+			was:           "1.1.1",
+			now:           "",
+			expectedError: version.ErrNoVersionParts,
 		},
 		"ReturnsInvalidBumpErrorWhenNotValidSemVer": {
-			was:         "1.0.0",
-			now:         "1.0.3",
-			assertError: test.IsSentinelError(version.ErrInvalidBump),
+			was:           "1.0.0",
+			now:           "1.0.3",
+			expectedError: version.ErrInvalidBump,
 		},
 		"ReturnsNoErrorForValidPatch": {
-			was:         "1.0.0",
-			now:         "1.0.1",
-			assertError: require.NoError,
+			was:           "1.0.0",
+			now:           "1.0.1",
+			expectedError: nil,
 		},
 		"ReturnsNoErrorForValidMinor": {
-			was:         "1.0.0",
-			now:         "1.1.0",
-			assertError: require.NoError,
+			was:           "1.0.0",
+			now:           "1.1.0",
+			expectedError: nil,
 		},
 		"ReturnsNoErrorForValidMajor": {
-			was:         "1.0.0",
-			now:         "2.0.0",
-			assertError: require.NoError,
+			was:           "1.0.0",
+			now:           "2.0.0",
+			expectedError: nil,
 		},
 	}
 
@@ -60,7 +59,7 @@ func TestCompare(t *testing.T) {
 			t.Parallel()
 
 			err := version.Compare(tc.was, tc.now)
-			tc.assertError(t, err)
+			require.ErrorIs(t, err, tc.expectedError)
 		})
 	}
 }

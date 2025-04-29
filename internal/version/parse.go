@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-
-	"github.com/tx3stn/vrsn/internal/sentinel"
 )
 
 // SemVer holds the details of the semantic version parts.
@@ -32,17 +30,17 @@ func Parse(version string) (SemVer, error) {
 
 	major, err := strconv.Atoi(parts[0])
 	if err != nil {
-		return SemVer{}, sentinel.WithMessage(err, ErrConvertingToInt, "major version")
+		return SemVer{}, fmt.Errorf("%w: major version :%w", ErrConvertingToInt, err)
 	}
 
 	minor, err := strconv.Atoi(parts[1])
 	if err != nil {
-		return SemVer{}, sentinel.WithMessage(err, ErrConvertingToInt, "minor version")
+		return SemVer{}, fmt.Errorf("%w: minor version :%w", ErrConvertingToInt, err)
 	}
 
 	patch, err := strconv.Atoi(parts[2])
 	if err != nil {
-		return SemVer{}, sentinel.WithMessage(err, ErrConvertingToInt, "patch version")
+		return SemVer{}, fmt.Errorf("%w: patch version :%w", ErrConvertingToInt, err)
 	}
 
 	return SemVer{

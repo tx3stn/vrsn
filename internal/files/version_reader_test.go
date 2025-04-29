@@ -8,119 +8,118 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tx3stn/vrsn/internal/files"
-	"github.com/tx3stn/vrsn/internal/test"
 )
 
 func TestGetVersionFromFile(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		parentDir   string
-		inputFile   string
-		assertError require.ErrorAssertionFunc
-		expected    string
+		parentDir     string
+		inputFile     string
+		expectedError error
+		expected      string
 	}{
 		"ReturnsErrorForUnsupportedVersionFile": {
-			parentDir:   "all",
-			inputFile:   "foo.txt",
-			assertError: require.Error,
-			expected:    "",
+			parentDir:     "all",
+			inputFile:     "foo.txt",
+			expectedError: files.ErrUnsuportedFile,
+			expected:      "",
 		},
 		"ReturnsVersionFromBuildGradle": {
-			parentDir:   "all",
-			inputFile:   "build.gradle",
-			assertError: require.NoError,
-			expected:    "1.3.0",
+			parentDir:     "all",
+			inputFile:     "build.gradle",
+			expectedError: nil,
+			expected:      "1.3.0",
 		},
 		"ReturnsErrorFromInvalidBuildGradle": {
-			parentDir:   "no-version",
-			inputFile:   "build.gradle",
-			assertError: test.IsSentinelError(files.ErrGettingVersionFromBuildGradle),
-			expected:    "",
+			parentDir:     "no-version",
+			inputFile:     "build.gradle",
+			expectedError: files.ErrGettingVersionFromBuildGradle,
+			expected:      "",
 		},
 		"ReturnsVersionFromBuildGradleKTS": {
-			parentDir:   "all",
-			inputFile:   "build.gradle.kts",
-			assertError: require.NoError,
-			expected:    "0.9.12",
+			parentDir:     "all",
+			inputFile:     "build.gradle.kts",
+			expectedError: nil,
+			expected:      "0.9.12",
 		},
 		"ReturnsErrorFromInvalidBuildGradleKTS": {
-			parentDir:   "no-version",
-			inputFile:   "build.gradle.kts",
-			assertError: test.IsSentinelError(files.ErrGettingVersionFromBuildGradle),
-			expected:    "",
+			parentDir:     "no-version",
+			inputFile:     "build.gradle.kts",
+			expectedError: files.ErrGettingVersionFromBuildGradle,
+			expected:      "",
 		},
 		"ReturnsVersionFromCargoTOML": {
-			parentDir:   "all",
-			inputFile:   "Cargo.toml",
-			assertError: require.NoError,
-			expected:    "2.14.741",
+			parentDir:     "all",
+			inputFile:     "Cargo.toml",
+			expectedError: nil,
+			expected:      "2.14.741",
 		},
 		"ReturnsErrorFromInvalidCargoTOML": {
-			parentDir:   "no-version",
-			inputFile:   "Cargo.toml",
-			assertError: test.IsSentinelError(files.ErrGettingVersionFromTOML),
-			expected:    "",
+			parentDir:     "no-version",
+			inputFile:     "Cargo.toml",
+			expectedError: files.ErrGettingVersionFromTOML,
+			expected:      "",
 		},
 		"ReturnsVersionFromCMakeLists": {
-			parentDir:   "all",
-			inputFile:   "CMakeLists.txt",
-			assertError: require.NoError,
-			expected:    "1.3.0",
+			parentDir:     "all",
+			inputFile:     "CMakeLists.txt",
+			expectedError: nil,
+			expected:      "1.3.0",
 		},
 		"ReturnsErrorFromInvalidCMakeLists": {
-			parentDir:   "no-version",
-			inputFile:   "CMakeLists.txt",
-			assertError: test.IsSentinelError(files.ErrGettingVersionFromCMakeLists),
-			expected:    "",
+			parentDir:     "no-version",
+			inputFile:     "CMakeLists.txt",
+			expectedError: files.ErrGettingVersionFromCMakeLists,
+			expected:      "",
 		},
 		"ReturnsVersionFromPackageJSON": {
-			parentDir:   "all",
-			inputFile:   "package.json",
-			assertError: require.NoError,
-			expected:    "1.0.4",
+			parentDir:     "all",
+			inputFile:     "package.json",
+			expectedError: nil,
+			expected:      "1.0.4",
 		},
 		"ReturnsErrorFromInvalidPackageJSON": {
-			parentDir:   "no-version",
-			inputFile:   "package.json",
-			assertError: test.IsSentinelError(files.ErrGettingVersionFromPackageJSON),
-			expected:    "",
+			parentDir:     "no-version",
+			inputFile:     "package.json",
+			expectedError: files.ErrGettingVersionFromPackageJSON,
+			expected:      "",
 		},
 		"ReturnsVersionFromPyprojectTOML": {
-			parentDir:   "all",
-			inputFile:   "pyproject.toml",
-			assertError: require.NoError,
-			expected:    "9.8.123456",
+			parentDir:     "all",
+			inputFile:     "pyproject.toml",
+			expectedError: nil,
+			expected:      "9.8.123456",
 		},
 		"ReturnsErrorFromInvalidPyprojectTOML": {
-			parentDir:   "no-version",
-			inputFile:   "pyproject.toml",
-			assertError: test.IsSentinelError(files.ErrGettingVersionFromTOML),
-			expected:    "",
+			parentDir:     "no-version",
+			inputFile:     "pyproject.toml",
+			expectedError: files.ErrGettingVersionFromTOML,
+			expected:      "",
 		},
 		"ReturnsVersionFromSetupPy": {
-			parentDir:   "all",
-			inputFile:   "setup.py",
-			assertError: require.NoError,
-			expected:    "0.2.0",
+			parentDir:     "all",
+			inputFile:     "setup.py",
+			expectedError: nil,
+			expected:      "0.2.0",
 		},
 		"ReturnsErrorFromInvalidSetupPy": {
-			parentDir:   "no-version",
-			inputFile:   "setup.py",
-			assertError: test.IsSentinelError(files.ErrGettingVersionFromSetupPy),
-			expected:    "",
+			parentDir:     "no-version",
+			inputFile:     "setup.py",
+			expectedError: files.ErrGettingVersionFromSetupPy,
+			expected:      "",
 		},
 		"ReturnsVersionFromVERSIONFile": {
-			parentDir:   "all",
-			inputFile:   "VERSION",
-			assertError: require.NoError,
-			expected:    "6.6.6",
+			parentDir:     "all",
+			inputFile:     "VERSION",
+			expectedError: nil,
+			expected:      "6.6.6",
 		},
 		"ReturnsErrorFromInvalidVERSIONFile": {
-			parentDir:   "no-version",
-			inputFile:   "VERSION",
-			assertError: test.IsSentinelError(files.ErrGettingVersionFromVERSION),
-			expected:    "",
+			parentDir:     "no-version",
+			inputFile:     "VERSION",
+			expectedError: files.ErrGettingVersionFromVERSION,
+			expected:      "",
 		},
 	}
 
@@ -132,8 +131,8 @@ func TestGetVersionFromFile(t *testing.T) {
 
 			dir := filepath.Join("testdata", tc.parentDir)
 			actual, err := files.GetVersionFromFile(dir, tc.inputFile)
-			tc.assertError(t, err)
 
+			require.ErrorIs(t, err, tc.expectedError)
 			assert.Equal(t, tc.expected, actual)
 		})
 	}
@@ -143,94 +142,94 @@ func TestGetVersionFromString(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		parentDir   string
-		inputFile   string
-		assertError require.ErrorAssertionFunc
-		expected    string
+		parentDir     string
+		inputFile     string
+		expectedError error
+		expected      string
 	}{
 		"ReturnsVersionFromBuildGradle": {
-			parentDir:   "all",
-			inputFile:   "build.gradle",
-			assertError: require.NoError,
-			expected:    "1.3.0",
+			parentDir:     "all",
+			inputFile:     "build.gradle",
+			expectedError: nil,
+			expected:      "1.3.0",
 		},
 		"ReturnsErrorFromInvalidBuildGradle": {
-			parentDir:   "no-version",
-			inputFile:   "build.gradle",
-			assertError: test.IsSentinelError(files.ErrGettingVersionFromBuildGradle),
-			expected:    "",
+			parentDir:     "no-version",
+			inputFile:     "build.gradle",
+			expectedError: files.ErrGettingVersionFromBuildGradle,
+			expected:      "",
 		},
 		"ReturnsVersionFromBuildGradleKTS": {
-			parentDir:   "all",
-			inputFile:   "build.gradle.kts",
-			assertError: require.NoError,
-			expected:    "0.9.12",
+			parentDir:     "all",
+			inputFile:     "build.gradle.kts",
+			expectedError: nil,
+			expected:      "0.9.12",
 		},
 		"ReturnsErrorFromInvalidBuildGradleKTS": {
-			parentDir:   "no-version",
-			inputFile:   "build.gradle.kts",
-			assertError: test.IsSentinelError(files.ErrGettingVersionFromBuildGradle),
-			expected:    "",
+			parentDir:     "no-version",
+			inputFile:     "build.gradle.kts",
+			expectedError: files.ErrGettingVersionFromBuildGradle,
+			expected:      "",
 		},
 		"ReturnsVersionFromCargoTOML": {
-			parentDir:   "all",
-			inputFile:   "Cargo.toml",
-			assertError: require.NoError,
-			expected:    "2.14.741",
+			parentDir:     "all",
+			inputFile:     "Cargo.toml",
+			expectedError: nil,
+			expected:      "2.14.741",
 		},
 		"ReturnsErrorFromInvalidCargoTOML": {
-			parentDir:   "no-version",
-			inputFile:   "Cargo.toml",
-			assertError: test.IsSentinelError(files.ErrGettingVersionFromTOML),
-			expected:    "",
+			parentDir:     "no-version",
+			inputFile:     "Cargo.toml",
+			expectedError: files.ErrGettingVersionFromTOML,
+			expected:      "",
 		},
 		"ReturnsVersionFromPackageJSON": {
-			parentDir:   "all",
-			inputFile:   "package.json",
-			assertError: require.NoError,
-			expected:    "1.0.4",
+			parentDir:     "all",
+			inputFile:     "package.json",
+			expectedError: nil,
+			expected:      "1.0.4",
 		},
 		"ReturnsErrorFromInvalidPackageJSON": {
-			parentDir:   "no-version",
-			inputFile:   "package.json",
-			assertError: test.IsSentinelError(files.ErrGettingVersionFromPackageJSON),
-			expected:    "",
+			parentDir:     "no-version",
+			inputFile:     "package.json",
+			expectedError: files.ErrGettingVersionFromPackageJSON,
+			expected:      "",
 		},
 		"ReturnsVersionFromPyprojectTOML": {
-			parentDir:   "all",
-			inputFile:   "pyproject.toml",
-			assertError: require.NoError,
-			expected:    "9.8.123456",
+			parentDir:     "all",
+			inputFile:     "pyproject.toml",
+			expectedError: nil,
+			expected:      "9.8.123456",
 		},
 		"ReturnsErrorFromInvalidPyprojectTOML": {
-			parentDir:   "no-version",
-			inputFile:   "pyproject.toml",
-			assertError: test.IsSentinelError(files.ErrGettingVersionFromTOML),
-			expected:    "",
+			parentDir:     "no-version",
+			inputFile:     "pyproject.toml",
+			expectedError: files.ErrGettingVersionFromTOML,
+			expected:      "",
 		},
 		"ReturnsVersionFromSetupPy": {
-			parentDir:   "all",
-			inputFile:   "setup.py",
-			assertError: require.NoError,
-			expected:    "0.2.0",
+			parentDir:     "all",
+			inputFile:     "setup.py",
+			expectedError: nil,
+			expected:      "0.2.0",
 		},
 		"ReturnsErrorFromInvalidSetupPy": {
-			parentDir:   "no-version",
-			inputFile:   "setup.py",
-			assertError: test.IsSentinelError(files.ErrGettingVersionFromSetupPy),
-			expected:    "",
+			parentDir:     "no-version",
+			inputFile:     "setup.py",
+			expectedError: files.ErrGettingVersionFromSetupPy,
+			expected:      "",
 		},
 		"ReturnsVersionFromVERSIONFile": {
-			parentDir:   "all",
-			inputFile:   "VERSION",
-			assertError: require.NoError,
-			expected:    "6.6.6",
+			parentDir:     "all",
+			inputFile:     "VERSION",
+			expectedError: nil,
+			expected:      "6.6.6",
 		},
 		"ReturnsErrorFromInvalidVERSIONFile": {
-			parentDir:   "no-version",
-			inputFile:   "VERSION",
-			assertError: test.IsSentinelError(files.ErrGettingVersionFromVERSION),
-			expected:    "",
+			parentDir:     "no-version",
+			inputFile:     "VERSION",
+			expectedError: files.ErrGettingVersionFromVERSION,
+			expected:      "",
 		},
 	}
 
@@ -244,8 +243,8 @@ func TestGetVersionFromString(t *testing.T) {
 			require.NoError(t, err)
 
 			actual, err := files.GetVersionFromString(tc.inputFile, string(content))
-			tc.assertError(t, err)
 
+			require.ErrorIs(t, err, tc.expectedError)
 			assert.Equal(t, tc.expected, actual)
 		})
 	}

@@ -14,22 +14,22 @@ func TestIsGitDir(t *testing.T) {
 
 	testCases := map[string]struct {
 		inputDir      string
-		errorExpected require.ErrorAssertionFunc
+		errorExpected error
 		expected      bool
 	}{
 		"ReturnsTrueIfIsGitDir": {
 			inputDir:      "testdata/all",
-			errorExpected: require.NoError,
+			errorExpected: nil,
 			expected:      true,
 		},
 		"ReturnsFalseIfNotGitDir": {
 			inputDir:      "testdata/no-version",
-			errorExpected: require.NoError,
+			errorExpected: nil,
 			expected:      false,
 		},
 		"ReturnsErrorIfDirectoryDoesNotExist": {
 			inputDir:      "testdata/foo",
-			errorExpected: require.Error,
+			errorExpected: files.ErrGettingFilesInDirectory,
 			expected:      false,
 		},
 	}
@@ -45,7 +45,7 @@ func TestIsGitDir(t *testing.T) {
 			}
 
 			actual, err := files.IsGitDir(tc.inputDir)
-			tc.errorExpected(t, err)
+			require.ErrorIs(t, err, tc.errorExpected)
 			assert.Equal(t, tc.expected, actual)
 		})
 	}
