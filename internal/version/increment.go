@@ -1,7 +1,6 @@
 package version
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 )
@@ -51,14 +50,16 @@ func (b BumpOptions) SelectedIncrement(increment string) (string, error) {
 	if strings.Contains(increment, "patch") {
 		return b.Patch, nil
 	}
+
 	if strings.Contains(increment, "minor") {
 		return b.Minor, nil
 	}
+
 	if strings.Contains(increment, "major") {
 		return b.Major, nil
 	}
 
-	return "", errors.New("invalid increment type")
+	return "", ErrInvalidIncrementType
 }
 
 func (b BumpOptions) formattedMajor() string {
