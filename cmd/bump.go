@@ -15,6 +15,9 @@ import (
 )
 
 // NewCmdBump creates the bump command.
+// TODO: split this out into smaller chunks and remove nolint.
+//
+//nolint:cyclop,funlen
 func NewCmdBump() *cobra.Command {
 	shortDescription := "Increment the current semantic version with a valid patch, major or minor bump."
 

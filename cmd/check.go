@@ -14,6 +14,8 @@ import (
 )
 
 // NewCmdCheck creates the check command.
+//
+//nolint:gocognit,cyclop,funlen
 func NewCmdCheck() *cobra.Command {
 	shortDescription := "Check the semantic version has been correctly incremented."
 

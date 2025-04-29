@@ -90,6 +90,7 @@ func getVersionMatcher(inputFile string) (versionFileMatcher, error) {
 	return matcher, nil
 }
 
+//nolint:cyclop
 func (v versionFileMatcher) getVersion(scanner *bufio.Scanner) (string, error) {
 	for scanner.Scan() {
 		lineText := scanner.Text()

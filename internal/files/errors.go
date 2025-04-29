@@ -33,6 +33,8 @@ const (
 )
 
 // Error returns the error string for the error enum.
+//
+//nolint:cyclop
 func (e Error) Error() string {
 	switch e {
 	case ErrNoVersionFilesInDir:
