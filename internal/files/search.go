@@ -2,13 +2,14 @@
 package files
 
 import (
+	"fmt"
 	"io/fs"
+	"maps"
 	"os"
+	"slices"
 
 	"github.com/pkg/errors"
 	"github.com/tx3stn/vrsn/internal/logger"
-	"golang.org/x/exp/maps"
-	"golang.org/x/exp/slices"
 )
 
 // VersionFileFinder looks for the relevant version file based on the options
@@ -69,11 +70,12 @@ func (v VersionFileFinder) Find() (string, error) {
 func GetVersionFilesInDirectory(dir string) ([]string, error) {
 	allFiles, err := os.ReadDir(dir)
 	if err != nil {
-		return []string{}, err
+		return []string{}, fmt.Errorf("error getting version files in directory: %w", err)
 	}
 
 	versionFiles := []string{}
-	supported := maps.Keys(versionFileMatchers())
+	supportedFiles := versionFileMatchers()
+	supported := slices.AppendSeq(make([]string, 0, len(supportedFiles)), maps.Keys(supportedFiles))
 
 	for _, file := range allFiles {
 		if file.IsDir() {

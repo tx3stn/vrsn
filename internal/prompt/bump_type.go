@@ -2,6 +2,8 @@
 package prompt
 
 import (
+	"fmt"
+
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/tx3stn/vrsn/internal/version"
 )
@@ -11,7 +13,7 @@ import (
 func SelectBumpType(currentVersion string) (string, error) {
 	versionOptions, err := version.GetBumpOptions(currentVersion)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error getting bump options: %w", err)
 	}
 
 	answer := struct {
@@ -28,8 +30,9 @@ func SelectBumpType(currentVersion string) (string, error) {
 		},
 	}, &answer)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error prompting to selection version bump type: %w", err)
 	}
 
+	//nolint:wrapcheck
 	return versionOptions.SelectedIncrement(answer.Selected)
 }

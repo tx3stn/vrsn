@@ -13,7 +13,9 @@ func gitCommand(dir string, errMsg string, args ...string) (string, error) {
 	cmd.Dir = dir
 
 	var stdOut bytes.Buffer
+
 	var stdErr bytes.Buffer
+
 	cmd.Stdout = &stdOut
 	cmd.Stderr = &stdErr
 

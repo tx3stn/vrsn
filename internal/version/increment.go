@@ -45,7 +45,7 @@ func (b BumpOptions) PromptOptions() []string {
 	}
 }
 
-// SelectedIncrement gets ust the version number from the user selected prompt.
+// SelectedIncrement gets just the version number from the user selected prompt.
 func (b BumpOptions) SelectedIncrement(increment string) (string, error) {
 	if strings.Contains(increment, "patch") {
 		return b.Patch, nil

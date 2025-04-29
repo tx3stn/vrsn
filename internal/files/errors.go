@@ -26,6 +26,8 @@ const (
 	ErrGettingVersionFromTOML
 	// ErrGettingVersionFromVERSION is the error when the VERSION file is empty.
 	ErrGettingVersionFromVERSION
+	// ErrUnsuportedFile is the error returned when the file specified is not supported.
+	ErrUnsuportedFile
 )
 
 // Error returns the error string for the error enum.
@@ -54,6 +56,9 @@ func (e Error) Error() string {
 
 	case ErrGettingVersionFromVERSION:
 		return "unable to read version from VERSION file"
+
+	case ErrUnsuportedFile:
+		return "is not a supported version file type"
 
 	default:
 		return "unknown error"

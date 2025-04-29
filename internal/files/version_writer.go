@@ -18,7 +18,7 @@ func WriteVersionToFile(dir string, inputFile string, newVersion string) error {
 
 	file, err := os.Open(filepath.Clean(filepath.Join(dir, inputFile)))
 	if err != nil {
-		return err
+		return fmt.Errorf("error opening file: %w", err)
 	}
 
 	defer func() {
@@ -36,7 +36,7 @@ func WriteVersionToFile(dir string, inputFile string, newVersion string) error {
 
 	tmpFile, err := os.CreateTemp(dir, "vrsn-tmp-*")
 	if err != nil {
-		return err
+		return fmt.Errorf("error creating temp directory: %w", err)
 	}
 
 	defer func() {
@@ -47,12 +47,12 @@ func WriteVersionToFile(dir string, inputFile string, newVersion string) error {
 
 	for _, line := range newContents {
 		if _, err := tmpFile.WriteString(fmt.Sprintf("%s\n", line)); err != nil {
-			return err
+			return fmt.Errorf("error writing string to file: %w", err)
 		}
 	}
 
 	if err := os.Rename(tmpFile.Name(), file.Name()); err != nil {
-		return err
+		return fmt.Errorf("error renaming temp file: %w", err)
 	}
 
 	return nil

@@ -25,7 +25,7 @@ func NewCmdBump() *cobra.Command {
 			log := logger.NewBasic(false, flags.Verbose)
 			curDir, err := os.Getwd()
 			if err != nil {
-				return err
+				return fmt.Errorf("error getting current working directory: %w", err)
 			}
 
 			log.Debugf("bump command args: %s", args)
@@ -38,34 +38,34 @@ func NewCmdBump() *cobra.Command {
 
 			versionFile, err := versionFileFinder.Find()
 			if err != nil {
-				return err
+				return fmt.Errorf("error finding version file: %w", err)
 			}
 
 			currentVersion, err := files.GetVersionFromFile(curDir, versionFile)
 			if err != nil {
-				return err
+				return fmt.Errorf("errpr getting version from file: %w", err)
 			}
 
 			var newVersion string
 			if len(args) > 0 {
 				options, err := version.GetBumpOptions(currentVersion)
 				if err != nil {
-					return err
+					return fmt.Errorf("error getting bump options: %w", err)
 				}
 
 				newVersion, err = options.SelectedIncrement(args[0])
 				if err != nil {
-					return err
+					return fmt.Errorf("error getting selected increment: %w", err)
 				}
 			} else {
 				newVersion, err = prompt.SelectBumpType(currentVersion)
 				if err != nil {
-					return err
+					return fmt.Errorf("error selecting bump type: %w", err)
 				}
 			}
 
 			if err := files.WriteVersionToFile(curDir, versionFile, newVersion); err != nil {
-				return err
+				return fmt.Errorf("error writing version to file: %w", err)
 			}
 
 			log.Infof("version bumped from %s to %s", currentVersion, newVersion)
@@ -101,7 +101,15 @@ The semantic version in the version file will be updated in place.`, shortDescri
 		ValidArgs:     []string{"patch", "major", "minor"},
 	}
 
-	cmd.Flags().BoolVar(&flags.Commit, "commit", false, "Commit the updated version file after bumping.")
-	cmd.Flags().StringVar(&flags.CommitMsg, "commit-msg", "bump version", "Customise the commit message used when committing the version bump.")
+	cmd.Flags().
+		BoolVar(&flags.Commit, "commit", false, "Commit the updated version file after bumping.")
+	cmd.Flags().
+		StringVar(
+			&flags.CommitMsg,
+			"commit-msg",
+			"bump version",
+			"Customise the commit message used when committing the version bump.",
+		)
+
 	return cmd
 }
