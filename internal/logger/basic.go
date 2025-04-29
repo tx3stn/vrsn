@@ -23,6 +23,7 @@ func NewBasic(color bool, verbose bool) Basic {
 // verbose mode.
 func (b Basic) Debug(msg string) {
 	if b.Verbose {
+		//nolint:forbidigo
 		fmt.Println(msg)
 	}
 }
@@ -35,6 +36,7 @@ func (b Basic) Debugf(msg string, args ...interface{}) {
 
 // Info is an info level log which will be default always be displayed.
 func (b Basic) Info(msg string) {
+	//nolint:forbidigo
 	fmt.Println(msg)
 }
 

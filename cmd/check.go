@@ -101,6 +101,7 @@ func NewCmdCheck() *cobra.Command {
 
 			return validateAndCompare(log, flags.Was, flags.Now)
 		},
+		//nolint:perfsprint
 		Long: fmt.Sprintf(`%s
 
 Detects if you are on a branch that is not the repository's base branch so the

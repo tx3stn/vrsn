@@ -86,6 +86,7 @@ func NewCmdBump() *cobra.Command {
 
 			return nil
 		},
+		//nolint:perfsprint
 		Long: fmt.Sprintf(`%s
 
 Pass the increment type directly as an argument to the command, e.g.:

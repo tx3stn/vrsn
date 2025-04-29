@@ -16,6 +16,8 @@ type SemVer struct {
 	Patch int
 }
 
+const semVerParts = 3
+
 // Parse checks the input string is a valid semantic version and
 // parses it into a SemVer struct.
 func Parse(version string) (SemVer, error) {
@@ -24,7 +26,7 @@ func Parse(version string) (SemVer, error) {
 	}
 
 	parts := strings.Split(version, ".")
-	if len(parts) != 3 {
+	if len(parts) != semVerParts {
 		return SemVer{}, ErrNumVersionParts
 	}
 
@@ -69,6 +71,6 @@ func (s *SemVer) PatchBump() {
 }
 
 // ToString returns the string representation of a SemVer struct.
-func (s SemVer) ToString() string {
+func (s *SemVer) ToString() string {
 	return fmt.Sprintf("%d.%d.%d", s.Major, s.Minor, s.Patch)
 }

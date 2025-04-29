@@ -139,7 +139,11 @@ func TestWriteVersionToFile(t *testing.T) {
 			originalValues, err := os.ReadFile(filepath.Join("testdata", "bump-og", tc.inputFile))
 			require.NoError(t, err)
 
-			err = os.WriteFile(filepath.Join("testdata", "bump", tc.inputFile), originalValues, 0o600)
+			err = os.WriteFile(
+				filepath.Join("testdata", "bump", tc.inputFile),
+				originalValues,
+				0o600,
+			)
 			require.NoError(t, err)
 		})
 	}
