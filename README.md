@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD033 -->
 <h1 align="center">vrsn</h1>
 
 <p align="center">
@@ -167,6 +168,10 @@ Want to automatically commit the version bump? Just use the `--commit` flag. ðŸ™
 
 Don't like the default commit message? Provide your own custom one with
 `--commit-msg`.
+
+```bash
+version bump minor --commit --commit-msg 'custom bump version commit message'
+```
 
 You can use the `--file` flag to point at a file that is not in the root of the
 git repo (like in a monorepo with independantly versioned services), e.g.:
