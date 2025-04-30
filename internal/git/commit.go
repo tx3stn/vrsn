@@ -17,7 +17,7 @@ func Commit(dir string, file string, msg string) (string, error) {
 	// e.g.: git commit package.json -m "bump version"
 	return gitCommand(
 		dir,
-		fmt.Sprintf("error committing %s", file),
+		"error committing "+file,
 		"commit", file, "-m", msg,
 	)
 }

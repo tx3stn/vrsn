@@ -14,6 +14,8 @@ import (
 )
 
 // NewCmdCheck creates the check command.
+//
+//nolint:gocognit,cyclop,funlen
 func NewCmdCheck() *cobra.Command {
 	shortDescription := "Check the semantic version has been correctly incremented."
 
@@ -23,7 +25,7 @@ func NewCmdCheck() *cobra.Command {
 			log := logger.NewBasic(false, flags.Verbose)
 			curDir, err := os.Getwd()
 			if err != nil {
-				return err
+				return fmt.Errorf("error getting current working directory: %w", err)
 			}
 
 			if flags.Was != "" && flags.Now != "" {
@@ -32,7 +34,7 @@ func NewCmdCheck() *cobra.Command {
 
 			currentBranch, err := git.CurrentBranch(curDir)
 			if err != nil {
-				return err
+				return fmt.Errorf("error getting current git branch: %w", err)
 			}
 
 			log.Debugf("current branch: %s", currentBranch)
@@ -46,48 +48,62 @@ func NewCmdCheck() *cobra.Command {
 
 			versionFile, err := versionFileFinder.Find()
 			if err != nil {
-				return err
+				return fmt.Errorf("error locating version file: %w", err)
 			}
 
 			if flags.Now == "" {
 				if versionFile == "" {
 					log.Info("no version files found in directory and no --now flag provided")
-					return errors.New("please either pass version with --now flag or run inside a directory that uses a version file")
+
+					return errors.New(
+						"please either pass version with --now flag or run inside a directory that uses a version file",
+					)
 				}
 
 				log.Debugf("reading current version from %s", versionFile)
 
 				flags.Now, err = files.GetVersionFromFile(curDir, versionFile)
 				if err != nil {
-					return err
+					return fmt.Errorf("error reading version from file: %w", err)
 				}
 			}
 
 			if flags.Was == "" {
 				if versionFile == "" {
 					log.Info("no version files found in directory and no --was flag provided")
-					return errors.New("please either pass version with --was flag or run inside a directory that uses a version file")
+
+					return errors.New(
+						"please either pass version with --was flag or run inside a directory that uses a version file",
+					)
 				}
 
 				if currentBranch == flags.BaseBranch {
-					return errors.Errorf("currently on the %s branch and no --was value supplied, unable to compare versions", flags.BaseBranch)
+					return errors.Errorf(
+						"currently on the %s branch and no --was value supplied, unable to compare versions",
+						flags.BaseBranch,
+					)
 				}
 
-				log.Debugf("reading previous version from %s on branch %s", versionFile, flags.BaseBranch)
+				log.Debugf(
+					"reading previous version from %s on branch %s",
+					versionFile,
+					flags.BaseBranch,
+				)
 
 				baseBranchVersion, err := git.VersionAtBranch(curDir, flags.BaseBranch, versionFile)
 				if err != nil {
-					return err
+					return fmt.Errorf("error getting version at branch: %w", err)
 				}
 
 				flags.Was, err = files.GetVersionFromString(versionFile, baseBranchVersion)
 				if err != nil {
-					return err
+					return fmt.Errorf("error parsing the version from string: %w", err)
 				}
 			}
 
 			return validateAndCompare(log, flags.Was, flags.Now)
 		},
+		//nolint:perfsprint
 		Long: fmt.Sprintf(`%s
 
 Detects if you are on a branch that is not the repository's base branch so the
@@ -106,22 +122,31 @@ read them from A N Y W H E R E.
 		SilenceUsage:  true,
 		Use:           "check",
 	}
-	cmd.Flags().StringVar(&flags.BaseBranch, "base-branch", "main", "Name of the base branch used when auto detecting version changes.")
-	cmd.Flags().StringVar(&flags.Was, "was", "", "The previous semantic version (if passing for direct comparison).")
-	cmd.PersistentFlags().StringVar(&flags.Now, "now", "", "The current semantic version (if passing for direct comparison).")
+	cmd.Flags().
+		StringVar(
+			&flags.BaseBranch,
+			"base-branch",
+			"main",
+			"Name of the base branch used when auto detecting version changes.",
+		)
+	cmd.Flags().
+		StringVar(&flags.Was, "was", "", "The previous semantic version (if passing for direct comparison).")
+	cmd.PersistentFlags().
+		StringVar(&flags.Now, "now", "", "The current semantic version (if passing for direct comparison).")
+
 	return cmd
 }
 
 func validateAndCompare(log logger.Basic, was string, now string) error {
-	if err := flags.Validate(flags.Was, flags.Now); err != nil {
-		return err
+	if err := flags.Validate(was, now); err != nil {
+		return fmt.Errorf("error validating flags: %w", err)
 	}
 
-	log.Infof("was: %s", flags.Was)
-	log.Infof("now: %s", flags.Now)
+	log.Infof("was: %s", was)
+	log.Infof("now: %s", now)
 
-	if err := version.Compare(flags.Was, flags.Now); err != nil {
-		return err
+	if err := version.Compare(was, now); err != nil {
+		return fmt.Errorf("error comparing versions: %w", err)
 	}
 
 	log.Info("valid version bump")

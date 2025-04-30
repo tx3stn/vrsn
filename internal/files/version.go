@@ -84,12 +84,13 @@ func getVersionMatcher(inputFile string) (versionFileMatcher, error) {
 
 	matcher, exists := versionFileMatchers()[file]
 	if !exists {
-		return versionFileMatcher{}, fmt.Errorf("%s is not a supported version file type", file)
+		return versionFileMatcher{}, fmt.Errorf("%s %w", file, ErrUnsuportedFile)
 	}
 
 	return matcher, nil
 }
 
+//nolint:cyclop
 func (v versionFileMatcher) getVersion(scanner *bufio.Scanner) (string, error) {
 	for scanner.Scan() {
 		lineText := scanner.Text()
@@ -129,7 +130,10 @@ func (v versionFileMatcher) getVersion(scanner *bufio.Scanner) (string, error) {
 	return "", v.notFoundError
 }
 
-func (v versionFileMatcher) updateVersionInPlace(scanner *bufio.Scanner, newVersion string) ([]string, error) {
+func (v versionFileMatcher) updateVersionInPlace(
+	scanner *bufio.Scanner,
+	newVersion string,
+) ([]string, error) {
 	if v.singleLineFile {
 		return []string{newVersion}, nil
 	}
@@ -142,9 +146,13 @@ func (v versionFileMatcher) updateVersionInPlace(scanner *bufio.Scanner, newVers
 
 		if v.lineMatcher(lineText) {
 			re := regexp.MustCompile(v.versionRegex)
-			newVersionLine := re.ReplaceAllString(lineText, fmt.Sprintf(`${1}${2}%s${4}`, newVersion))
+			newVersionLine := re.ReplaceAllString(
+				lineText,
+				fmt.Sprintf(`${1}${2}%s${4}`, newVersion),
+			)
 			allLines = append(allLines, newVersionLine)
 			foundVersion = true
+
 			continue
 		}
 

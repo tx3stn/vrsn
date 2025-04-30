@@ -26,9 +26,15 @@ const (
 	ErrGettingVersionFromTOML
 	// ErrGettingVersionFromVERSION is the error when the VERSION file is empty.
 	ErrGettingVersionFromVERSION
+	// ErrUnsuportedFile is the error returned when the file specified is not supported.
+	ErrUnsuportedFile
+	// ErrGettingFilesInDirectory is the error returned when getting files in a directory fails.
+	ErrGettingFilesInDirectory
 )
 
 // Error returns the error string for the error enum.
+//
+//nolint:cyclop
 func (e Error) Error() string {
 	switch e {
 	case ErrNoVersionFilesInDir:
@@ -54,6 +60,12 @@ func (e Error) Error() string {
 
 	case ErrGettingVersionFromVERSION:
 		return "unable to read version from VERSION file"
+
+	case ErrUnsuportedFile:
+		return "is not a supported version file type"
+
+	case ErrGettingFilesInDirectory:
+		return "error getting files in directory"
 
 	default:
 		return "unknown error"

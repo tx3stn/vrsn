@@ -5,36 +5,35 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/tx3stn/vrsn/internal/flags"
-	"github.com/tx3stn/vrsn/internal/test"
 )
 
 func TestValidate(t *testing.T) {
 	t.Parallel()
 
 	testCases := map[string]struct {
-		was         string
-		now         string
-		assertError require.ErrorAssertionFunc
+		was           string
+		now           string
+		expectedError error
 	}{
 		"ReturnsErrorWhenNoWasOrNowSupplied": {
-			was:         "",
-			now:         "",
-			assertError: test.IsSentinelError(flags.ErrNoValues),
+			was:           "",
+			now:           "",
+			expectedError: flags.ErrNoValues,
 		},
 		"ReturnsErrorWhenNoWasSupplied": {
-			was:         "",
-			now:         "1.0.0",
-			assertError: test.IsSentinelError(flags.ErrNoWasValue),
+			was:           "",
+			now:           "1.0.0",
+			expectedError: flags.ErrNoWasValue,
 		},
 		"ReturnsErrorWhenNoNowSupplied": {
-			was:         "2.4.6",
-			now:         "",
-			assertError: test.IsSentinelError(flags.ErrNoNowValue),
+			was:           "2.4.6",
+			now:           "",
+			expectedError: flags.ErrNoNowValue,
 		},
 		"ReturnsNoErrorWhenBothSupplied": {
-			was:         "6.6.6",
-			now:         "9.9.9",
-			assertError: require.NoError,
+			was:           "6.6.6",
+			now:           "9.9.9",
+			expectedError: nil,
 		},
 	}
 
@@ -45,7 +44,7 @@ func TestValidate(t *testing.T) {
 			t.Parallel()
 
 			err := flags.Validate(tc.was, tc.now)
-			tc.assertError(t, err)
+			require.ErrorIs(t, err, tc.expectedError)
 		})
 	}
 }

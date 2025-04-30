@@ -1,7 +1,6 @@
 package files_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -15,22 +14,22 @@ func TestIsGitDir(t *testing.T) {
 
 	testCases := map[string]struct {
 		inputDir      string
-		errorExpected require.ErrorAssertionFunc
+		errorExpected error
 		expected      bool
 	}{
 		"ReturnsTrueIfIsGitDir": {
 			inputDir:      "testdata/all",
-			errorExpected: require.NoError,
+			errorExpected: nil,
 			expected:      true,
 		},
 		"ReturnsFalseIfNotGitDir": {
 			inputDir:      "testdata/no-version",
-			errorExpected: require.NoError,
+			errorExpected: nil,
 			expected:      false,
 		},
 		"ReturnsErrorIfDirectoryDoesNotExist": {
 			inputDir:      "testdata/foo",
-			errorExpected: require.Error,
+			errorExpected: files.ErrGettingFilesInDirectory,
 			expected:      false,
 		},
 	}
@@ -46,7 +45,7 @@ func TestIsGitDir(t *testing.T) {
 			}
 
 			actual, err := files.IsGitDir(tc.inputDir)
-			tc.errorExpected(t, err)
+			require.ErrorIs(t, err, tc.errorExpected)
 			assert.Equal(t, tc.expected, actual)
 		})
 	}
@@ -59,5 +58,5 @@ func TestIsGitDir(t *testing.T) {
 func renameDir(from, to string) {
 	// Git won't let you commit the `.git` directory but that's needed for this
 	// test, so just rename the directory before the test runs.
-	_ = os.Rename(fmt.Sprintf("testdata/all/%s", from), fmt.Sprintf("testdata/all/%s", to))
+	_ = os.Rename("testdata/all/"+from, "testdata/all/"+to)
 }

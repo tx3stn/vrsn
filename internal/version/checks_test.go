@@ -7,6 +7,7 @@ import (
 	"github.com/tx3stn/vrsn/internal/version"
 )
 
+//nolint:dupl
 func TestIsValidMajor(t *testing.T) {
 	t.Parallel()
 
@@ -49,6 +50,7 @@ func TestIsValidMajor(t *testing.T) {
 	}
 }
 
+//nolint:dupl
 func TestIsValidMinor(t *testing.T) {
 	t.Parallel()
 
@@ -91,6 +93,7 @@ func TestIsValidMinor(t *testing.T) {
 	}
 }
 
+//nolint:dupl
 func TestIsValidPatch(t *testing.T) {
 	t.Parallel()
 

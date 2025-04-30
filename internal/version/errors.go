@@ -18,6 +18,8 @@ const (
 	ErrNumVersionParts
 	// ErrVersionNotBumped is the error when the version has not been bumped.
 	ErrVersionNotBumped
+	// ErrInvalidIncrementType is the error when the selected increment type is incorrect.
+	ErrInvalidIncrementType
 )
 
 // Error returns the error string for the error enum.
@@ -37,6 +39,9 @@ func (e Error) Error() string {
 
 	case ErrVersionNotBumped:
 		return "version has not been bumped"
+
+	case ErrInvalidIncrementType:
+		return "invalid increment type"
 
 	default:
 		return "unknown error"

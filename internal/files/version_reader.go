@@ -2,6 +2,7 @@ package files
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -18,7 +19,7 @@ func GetVersionFromFile(dir string, inputFile string) (string, error) {
 
 	file, err := os.Open(filepath.Clean(filepath.Join(dir, inputFile)))
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error opening version file: %w", err)
 	}
 
 	defer func() {
@@ -33,6 +34,7 @@ func GetVersionFromFile(dir string, inputFile string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return version, nil
 }
 
@@ -52,5 +54,6 @@ func GetVersionFromString(fileName string, input string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return version, nil
 }

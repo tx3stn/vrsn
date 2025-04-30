@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-
-	"github.com/tx3stn/vrsn/internal/sentinel"
 )
 
 // SemVer holds the details of the semantic version parts.
@@ -16,6 +14,8 @@ type SemVer struct {
 	Patch int
 }
 
+const semVerParts = 3
+
 // Parse checks the input string is a valid semantic version and
 // parses it into a SemVer struct.
 func Parse(version string) (SemVer, error) {
@@ -24,23 +24,23 @@ func Parse(version string) (SemVer, error) {
 	}
 
 	parts := strings.Split(version, ".")
-	if len(parts) != 3 {
+	if len(parts) != semVerParts {
 		return SemVer{}, ErrNumVersionParts
 	}
 
 	major, err := strconv.Atoi(parts[0])
 	if err != nil {
-		return SemVer{}, sentinel.WithMessage(err, ErrConvertingToInt, "major version")
+		return SemVer{}, fmt.Errorf("%w: major version :%w", ErrConvertingToInt, err)
 	}
 
 	minor, err := strconv.Atoi(parts[1])
 	if err != nil {
-		return SemVer{}, sentinel.WithMessage(err, ErrConvertingToInt, "minor version")
+		return SemVer{}, fmt.Errorf("%w: minor version :%w", ErrConvertingToInt, err)
 	}
 
 	patch, err := strconv.Atoi(parts[2])
 	if err != nil {
-		return SemVer{}, sentinel.WithMessage(err, ErrConvertingToInt, "patch version")
+		return SemVer{}, fmt.Errorf("%w: patch version :%w", ErrConvertingToInt, err)
 	}
 
 	return SemVer{
@@ -69,6 +69,6 @@ func (s *SemVer) PatchBump() {
 }
 
 // ToString returns the string representation of a SemVer struct.
-func (s SemVer) ToString() string {
+func (s *SemVer) ToString() string {
 	return fmt.Sprintf("%d.%d.%d", s.Major, s.Minor, s.Patch)
 }
