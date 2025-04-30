@@ -27,10 +27,6 @@ demo-gif: build build-image-demo-gif
 fmt:
 	@go fmt ${DIR}
 
-.PHONY: ghrc-login
-ghcr-login:
-	@op run --env-file='./.env' -- docker login ghcr.io -u "${GITHUB_USER}" -p "${GITHUB_TOKEN}"
-
 .PHONY: install
 install: build
 	@sudo cp ./${BINARY_NAME} /usr/bin/${BINARY_NAME}
@@ -38,15 +34,6 @@ install: build
 .PHONY: lint
 lint:
 	@golangci-lint run -v ${DIR}
-
-.PHONY: push-tag
-push-tag:
-	@git tag -a ${VERSION}
-	@git push origin ${VERSION}
-
-.PHONY: release
-release: ghrc-login push-tag
-	@op run --env-file='./.env' -- goreleaser release --rm-dist
 
 .PHONY: test
 test:
