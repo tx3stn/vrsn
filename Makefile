@@ -35,6 +35,11 @@ install: build
 lint:
 	@golangci-lint run -v ${DIR}
 
+.PHONY: push-tag
+push-tag:
+	@git tag -a ${VERSION} -m "Release ${VERSION}"
+	@git push origin ${VERSION}
+
 .PHONY: test
 test:
 	@CGO_ENABLED=1 go test ${DIR} -race -cover
