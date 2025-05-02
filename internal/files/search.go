@@ -2,13 +2,13 @@
 package files
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
 	"maps"
 	"os"
 	"slices"
 
-	"github.com/pkg/errors"
 	"github.com/tx3stn/vrsn/internal/logger"
 )
 
@@ -29,15 +29,15 @@ func (v VersionFileFinder) Find() (string, error) {
 		info, err := os.Stat(v.FileFlag)
 		// Handle not exists error first for better error output.
 		if errors.Is(err, fs.ErrNotExist) {
-			return "", errors.Errorf("file %s not found", v.FileFlag)
+			return "", fmt.Errorf("%w: file:%s", ErrFileNotFound, v.FileFlag)
 		}
 
 		if err != nil {
-			return "", errors.Wrapf(err, "error checking for file %s", v.FileFlag)
+			return "", fmt.Errorf("error checking for file %s: %w", v.FileFlag, err)
 		}
 
 		if info.IsDir() {
-			return "", errors.Errorf("file %s is a directory", v.FileFlag)
+			return "", fmt.Errorf("%w: file:%s", ErrFileIsDirectory, v.FileFlag)
 		}
 
 		return v.FileFlag, nil

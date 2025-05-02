@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/tx3stn/vrsn/internal/files"
 	"github.com/tx3stn/vrsn/internal/flags"
@@ -55,9 +54,7 @@ func NewCmdCheck() *cobra.Command {
 				if versionFile == "" {
 					log.Info("no version files found in directory and no --now flag provided")
 
-					return errors.New(
-						"please either pass version with --now flag or run inside a directory that uses a version file",
-					)
+					return ErrNoNowOrFile
 				}
 
 				log.Debugf("reading current version from %s", versionFile)
@@ -72,14 +69,13 @@ func NewCmdCheck() *cobra.Command {
 				if versionFile == "" {
 					log.Info("no version files found in directory and no --was flag provided")
 
-					return errors.New(
-						"please either pass version with --was flag or run inside a directory that uses a version file",
-					)
+					return ErrNoWasOrFile
 				}
 
 				if currentBranch == flags.BaseBranch {
-					return errors.Errorf(
-						"currently on the %s branch and no --was value supplied, unable to compare versions",
+					return fmt.Errorf(
+						"%w: base branch: %s",
+						ErrCantCompareVersionsOnBranch,
 						flags.BaseBranch,
 					)
 				}
