@@ -113,7 +113,7 @@ func TestGetVersionFromFile(t *testing.T) {
 			parentDir:     "all",
 			inputFile:     "VERSION",
 			expectedError: nil,
-			expected:      "6.6.6",
+			expected:      "v6.6.6",
 		},
 		"ReturnsErrorFromInvalidVERSIONFile": {
 			parentDir:     "no-version",
@@ -223,7 +223,7 @@ func TestGetVersionFromString(t *testing.T) {
 			parentDir:     "all",
 			inputFile:     "VERSION",
 			expectedError: nil,
-			expected:      "6.6.6",
+			expected:      "v6.6.6",
 		},
 		"ReturnsErrorFromInvalidVERSIONFile": {
 			parentDir:     "no-version",
