@@ -4,10 +4,8 @@ go 1.24.2
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
-	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.9.1
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0
 )
 
 require (

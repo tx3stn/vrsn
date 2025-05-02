@@ -2,10 +2,9 @@ package git
 
 import (
 	"bytes"
+	"fmt"
 	"os/exec"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 func gitCommand(dir string, errMsg string, args ...string) (string, error) {
@@ -20,7 +19,7 @@ func gitCommand(dir string, errMsg string, args ...string) (string, error) {
 	cmd.Stderr = &stdErr
 
 	if err := cmd.Run(); err != nil {
-		return "", errors.Wrapf(err, "%s: %s", errMsg, stdErr.String())
+		return "", fmt.Errorf("%w: %s: %s", err, errMsg, stdErr.String())
 	}
 
 	return strings.Trim(stdOut.String(), "\n"), nil

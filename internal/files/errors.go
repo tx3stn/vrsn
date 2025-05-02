@@ -30,6 +30,10 @@ const (
 	ErrUnsuportedFile
 	// ErrGettingFilesInDirectory is the error returned when getting files in a directory fails.
 	ErrGettingFilesInDirectory
+	// ErrFileNotFound is the error returned when the specified version file cannot be found.
+	ErrFileNotFound
+	// ErrFileIsDirectory is the error returned when the specified version file is a directory.
+	ErrFileIsDirectory
 )
 
 // Error returns the error string for the error enum.
@@ -66,6 +70,12 @@ func (e Error) Error() string {
 
 	case ErrGettingFilesInDirectory:
 		return "error getting files in directory"
+
+	case ErrFileNotFound:
+		return "file not found"
+
+	case ErrFileIsDirectory:
+		return "file is a directory"
 
 	default:
 		return "unknown error"

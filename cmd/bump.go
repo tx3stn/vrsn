@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/tx3stn/vrsn/internal/files"
 	"github.com/tx3stn/vrsn/internal/flags"
@@ -76,12 +75,16 @@ func NewCmdBump() *cobra.Command {
 			if flags.Commit {
 				addOutput, err := git.Add(curDir, versionFile)
 				if err != nil {
-					return errors.Wrapf(err, "git add output: %s", addOutput)
+					log.Infof("git add output: %s", addOutput)
+
+					return fmt.Errorf("error git adding files: %w", err)
 				}
 
 				commitOutput, err := git.Commit(curDir, versionFile, flags.CommitMsg)
 				if err != nil {
-					return errors.Wrapf(err, "git add output: %s", commitOutput)
+					log.Infof("git commit output: %s", commitOutput)
+
+					return fmt.Errorf("error git committing files: %w", err)
 				}
 
 				log.Infof("version file committed")
