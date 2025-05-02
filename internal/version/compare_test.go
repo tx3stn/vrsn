@@ -50,6 +50,11 @@ func TestCompare(t *testing.T) {
 			now:           "2.0.0",
 			expectedError: nil,
 		},
+		"ReturnsNoErrorForVPrefixedValidVersion": {
+			was:           "v1.0.0",
+			now:           "v2.0.0",
+			expectedError: nil,
+		},
 	}
 
 	for name, testCase := range testCases {

@@ -30,6 +30,15 @@ func TestGetBumpOptions(t *testing.T) {
 				Patch: "1.0.1",
 			},
 		},
+		"ReturnsIncrementedVersionsForValidInputWithVPrefix": {
+			version:     "v1.0.0",
+			assertError: require.NoError,
+			expected: version.BumpOptions{
+				Major: "v2.0.0",
+				Minor: "v1.1.0",
+				Patch: "v1.0.1",
+			},
+		},
 	}
 
 	for name, testCase := range testCases {

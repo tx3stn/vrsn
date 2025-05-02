@@ -100,7 +100,7 @@ func TestWriteVersionToFile(t *testing.T) {
 		"WritesVersionToVERSIONFile": {
 			parentDir:     "bump",
 			inputFile:     "VERSION",
-			newVersion:    "6.6.6",
+			newVersion:    "v6.6.6",
 			expectedError: nil,
 		},
 	}
