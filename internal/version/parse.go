@@ -9,12 +9,16 @@ import (
 
 // SemVer holds the details of the semantic version parts.
 type SemVer struct {
-	Major int
-	Minor int
-	Patch int
+	Major  int
+	Minor  int
+	Patch  int
+	Prefix string
 }
 
-const semVerParts = 3
+const (
+	prefix      = "v"
+	semVerParts = 3
+)
 
 // Parse checks the input string is a valid semantic version and
 // parses it into a SemVer struct.
@@ -28,7 +32,15 @@ func Parse(version string) (SemVer, error) {
 		return SemVer{}, ErrNumVersionParts
 	}
 
-	major, err := strconv.Atoi(parts[0])
+	pre := ""
+
+	majorPart := parts[0]
+	if majorPart[0:1] == prefix {
+		majorPart = parts[0][1:]
+		pre = prefix
+	}
+
+	major, err := strconv.Atoi(majorPart)
 	if err != nil {
 		return SemVer{}, fmt.Errorf("%w: major version :%w", ErrConvertingToInt, err)
 	}
@@ -44,9 +56,10 @@ func Parse(version string) (SemVer, error) {
 	}
 
 	return SemVer{
-		Major: major,
-		Minor: minor,
-		Patch: patch,
+		Major:  major,
+		Minor:  minor,
+		Patch:  patch,
+		Prefix: pre,
 	}, nil
 }
 
@@ -70,5 +83,5 @@ func (s *SemVer) PatchBump() {
 
 // ToString returns the string representation of a SemVer struct.
 func (s *SemVer) ToString() string {
-	return fmt.Sprintf("%d.%d.%d", s.Major, s.Minor, s.Patch)
+	return fmt.Sprintf("%s%d.%d.%d", s.Prefix, s.Major, s.Minor, s.Patch)
 }
