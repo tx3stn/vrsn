@@ -13,11 +13,11 @@ commands:
       bump-type:
         description: The version increment type you want to make.
         type: enum
-        enum: [patch, major, minor]
+        enum: [major, minor, patch]
     steps:
       - run:
           name: check version bump is valid
-          command: vrsn bump << parameters.type >> << parameters.additional-args >>
+          command: vrsn bump << parameters.bump-type >> << parameters.additional-args >>
 
   check-version:
     description: Check the version bump is a valid semver increment with vrsn.
@@ -62,4 +62,32 @@ jobs:
           path: << parameters.working-directory >>
       - check-version:
           additional-args: << parameters.additional-args >>
+    working_directory: << parameters.working-directory >>
+
+  bump-version:
+    description: Increment the semantic version with vrsn.
+    parameters:
+      additional-args:
+        description: Additional arguments or flags to pass to the vrsn command.
+        default: ""
+        type: string
+      bump-type:
+        description: The version increment type you want to make.
+        type: enum
+        enum: [major, minor, patch]
+      executor:
+        description: The executor to use during the check version job.
+        default: vrsn
+        type: executor
+      working-directory:
+        description: The directory the project will be checked out to.
+        default: /repo
+        type: string
+    executor: << parameters.executor >>
+    steps:
+      - checkout:
+          path: << parameters.working-directory >>
+      - bump-version:
+          additional-args: << parameters.additional-args >>
+          bump-type: << parameters.bump-type >>
     working_directory: << parameters.working-directory >>
