@@ -10,7 +10,7 @@ commands:
         description: Additional arguments or flags to pass to the vrsn command.
         default: ""
         type: string
-      type:
+      bump-type:
         description: The version increment type you want to make.
         type: enum
         enum: [patch, major, minor]
