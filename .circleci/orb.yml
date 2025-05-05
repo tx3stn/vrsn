@@ -52,11 +52,17 @@ jobs:
         description: The executor to use during the check version job.
         default: vrsn
         type: executor
+      resource-class:
+        description: The resource class to use for the job.
+        default: small
+        type: enum
+        enum: [small, medium, medium+, large, xlarge, 2xlarge, 2xlarge+]
       working-directory:
         description: The directory the project will be checked out to.
         default: /repo
         type: string
     executor: << parameters.executor >>
+    resource_class: << parameters.resource-class >>
     steps:
       - checkout:
           path: << parameters.working-directory >>
@@ -95,11 +101,17 @@ jobs:
         description: The executor to use during the check version job.
         default: vrsn
         type: executor
+      resource-class:
+        description: The resource class to use for the job.
+        default: small
+        type: enum
+        enum: [small, medium, medium+, large, xlarge, 2xlarge, 2xlarge+]
       working-directory:
         description: The directory the project will be checked out to.
         default: /repo
         type: string
     executor: << parameters.executor >>
+    resource_class: << parameters.resource-class >>
     steps:
       - checkout:
           path: << parameters.working-directory >>
@@ -130,7 +142,6 @@ jobs:
       - run:
           name: push bump to branch
           command: |
-            # add ssh client so git push works with configured keys
-            apk add --update openssh-client
+            apk add openssh
             git push origin $(git rev-parse --abbrev-ref HEAD)
     working_directory: << parameters.working-directory >>
