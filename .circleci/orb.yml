@@ -110,6 +110,7 @@ jobs:
                 name: check version before bumping
                 command: |
                   # handle check failing
+                  set +eo pipefail
                   cmd=$(vrsn check << parameters.check-args >>)
                   if [ "$?" = 0 ]; then
                     echo "version already bumped"
