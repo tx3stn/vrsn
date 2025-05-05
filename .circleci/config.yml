@@ -3,7 +3,7 @@ version: 2.1
 
 orbs:
   circleci-cli: circleci/circleci-cli@volatile
-  vrsn: tx3stn/vrsn@dev:bump-version-ci-job
+  vrsn: tx3stn/vrsn@volatile
 
 anchors:
   dependabot-branch-regex: &dependabot-branch-regex /^dependabot\/.*/
@@ -69,8 +69,9 @@ workflows:
       - vrsn/bump-version:
           bump-type: patch
           ssh-key-fingerprint: SHA256:MWytBJLJVEh/0/9qNhvwcoAiM/dhuWpmxomHGGomiGI
-          requires:
-            - push-dev-tagged-orb
+          <<: *only-dependabot
+      - vrsn/check-version:
+          <<: *ignore-main-and-dependabot
       - validate-orb:
           <<: *ignore-main
       - push-dev-tagged-orb:
