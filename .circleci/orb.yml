@@ -75,7 +75,7 @@ jobs:
     parameters:
       additional-args:
         description: Additional arguments or flags to pass to the vrsn command.
-        default: "--commit --commit-msg 'bump version from ci [skip ci]'"
+        default: "--commit --commit-msg 'bump version from ci'"
         type: string
       bump-type:
         description: The version increment type you want to make.
@@ -88,14 +88,6 @@ jobs:
       check-args:
         description: Additional arguments or flags to pass to the vrsn check command.
         default: ""
-        type: string
-      commiter-user-name:
-        description: The user.name git config value to use with the commit.
-        default: "${CIRCLE_PROJECT_USERNAME}"
-        type: string
-      commiter-email:
-        description: The user.email git config value to use with the commit.
-        default: "vrsn+ci-auto-bump"
         type: string
       executor:
         description: The executor to use during the check version job.
@@ -139,8 +131,10 @@ jobs:
           name: set git config values
           command: |
             # https://support.circleci.com/hc/en-us/articles/360018860473-How-to-push-a-commit-back-to-the-same-repository-as-part-of-the-CircleCI-job
-            git config user.name << parameters.commiter-user-name >>
-            git config user.email << parameters.commiter-email >>
+            name=$(git --no-pager log -n 1 | grep "Author:" | cut -d' ' -f 2)
+            email=$(git --no-pager log -n 1 | grep "Author:" | cut -d' ' -f 3 | head -c -2 | cut -c 2-)
+            git config user.name $name
+            git config user.email $email
       - bump-version:
           additional-args: << parameters.additional-args >>
           bump-type: << parameters.bump-type >>
