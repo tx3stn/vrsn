@@ -68,6 +68,7 @@ workflows:
     jobs:
       - vrsn/bump-version:
           bump-type: patch
+          ssh-key-fingerprint: SHA256:MWytBJLJVEh/0/9qNhvwcoAiM/dhuWpmxomHGGomiGI
           requires:
             - push-dev-tagged-orb
       - validate-orb:
