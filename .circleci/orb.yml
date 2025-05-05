@@ -106,6 +106,9 @@ jobs:
         default: small
         type: enum
         enum: [small, medium, medium+, large, xlarge, 2xlarge, 2xlarge+]
+      ssh-key-fingerprint:
+        description: Finger print of the ssh key to use, required to commit the version bump back to the branch.
+        type: string
       working-directory:
         description: The directory the project will be checked out to.
         default: /repo
@@ -113,6 +116,8 @@ jobs:
     executor: << parameters.executor >>
     resource_class: << parameters.resource-class >>
     steps:
+      - add_ssh_keys:
+          fingerprints: << parameters.ssh-key-fingerprint >>
       - checkout:
           path: << parameters.working-directory >>
       - when:
@@ -142,6 +147,5 @@ jobs:
       - run:
           name: push bump to branch
           command: |
-            apk add openssh
             git push origin $(git rev-parse --abbrev-ref HEAD)
     working_directory: << parameters.working-directory >>
