@@ -130,5 +130,7 @@ jobs:
       - run:
           name: push bump to branch
           command: |
+            # add ssh client so git push works with configured keys
+            apk add --update openssh-client
             git push origin $(git rev-parse --abbrev-ref HEAD)
     working_directory: << parameters.working-directory >>
