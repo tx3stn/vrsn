@@ -183,7 +183,11 @@ vrsn bump --file './services/service-name/VERSION'
 
 This approach allows you to easily increment multiple versions in bulk, just
 write a script to iterate over each service that needs bumping and use the
-command `vrsn bump patch --file ./services/$SERIVCE_NAME/VERSION`.
+`vrsn bump` command. e.g.:
+
+```bash
+find ./services -type f -name 'VERSION' -exec vrsn bump patch --file {} \
+```
 
 ## Running in Docker
 
