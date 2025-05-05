@@ -6,6 +6,7 @@ orbs:
   vrsn: tx3stn/vrsn@volatile
 
 anchors:
+  dependabot-branch-regex: &dependabot-branch-regex /^dependabot\/.*/
   ignore-main: &ignore-main
     filters:
       branches:
@@ -17,7 +18,7 @@ anchors:
       branches:
         ignore:
           - main
-          - /dependabot\/.*/
+          - *dependabot-branch-regex
 
   only-main: &only-main
     filters:
@@ -29,7 +30,7 @@ anchors:
     filters:
       branches:
         only:
-          - /dependabot\/.*/
+          - *dependabot-branch-regex
 jobs:
   push-dev-tagged-orb:
     executor: circleci-cli/default
