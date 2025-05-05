@@ -17,7 +17,7 @@ anchors:
       branches:
         ignore:
           - main
-          - dependabot/*
+          - /dependabot\/.*/
 
   only-main: &only-main
     filters:
@@ -29,7 +29,7 @@ anchors:
     filters:
       branches:
         only:
-          - dependabot/*
+          - /dependabot\/.*/
 jobs:
   push-dev-tagged-orb:
     executor: circleci-cli/default
