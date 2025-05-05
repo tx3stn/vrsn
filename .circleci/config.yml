@@ -68,7 +68,7 @@ workflows:
     jobs:
       - vrsn/bump-version:
           bump-type: patch
-          ssh-key-fingerprint: SHA256:MWytBJLJVEh/0/9qNhvwcoAiM/dhuWpmxomHGGomiGI
+          # ssh-key-fingerprint: SHA256:MWytBJLJVEh/0/9qNhvwcoAiM/dhuWpmxomHGGomiGI
           <<: *only-dependabot
       - vrsn/check-version:
           <<: *ignore-main-and-dependabot
