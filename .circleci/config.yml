@@ -3,7 +3,7 @@ version: 2.1
 
 orbs:
   circleci-cli: circleci/circleci-cli@volatile
-  vrsn: tx3stn/vrsn@volatile
+  vrsn: tx3stn/vrsn@dev:bump-version-ci-job
 
 anchors:
   dependabot-branch-regex: &dependabot-branch-regex /^dependabot\/.*/
@@ -66,8 +66,6 @@ jobs:
 workflows:
   pull-request-build:
     jobs:
-      - vrsn/check-version:
-          <<: *ignore-main-and-dependabot
       - vrsn/bump-version:
           bump-type: patch
       - validate-orb:
