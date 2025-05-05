@@ -17,6 +17,7 @@
   - [Use the CircleCI orb](#use-the-circleci-orb)
 - [Commands](#commands)
 - [Running in Docker](#running-in-docker)
+- [CI usage examples](#ci-usage-examples)
 
 ## Why?
 
@@ -182,7 +183,11 @@ vrsn bump --file './services/service-name/VERSION'
 
 This approach allows you to easily increment multiple versions in bulk, just
 write a script to iterate over each service that needs bumping and use the
-command `vrsn bump patch --file ./services/$SERIVCE_NAME/VERSION`.
+`vrsn bump` command. e.g.:
+
+```bash
+find ./services -type f -name 'VERSION' -exec vrsn bump patch --file {} \
+```
 
 ## Running in Docker
 
@@ -198,4 +203,27 @@ mount. e.g.:
 
 ```bash
 docker run --rm -it -v $PWD:/repo vrsn:latest check
+```
+
+## CI usage examples
+
+To auto increment a version in a dependabot pull request so you don't need to
+manually do it:
+
+1. Configure a [write access deploy key](https://circleci.com/docs/github-integration/#deploy-keys-and-user-keys)
+in CircleCI, as the bump version command will commit the version bump to the branch.
+You will need to pass the key fingerprint as a paramter to the `bump-version` job.
+1. Add a workflow job, filtered on branches that begin with `dependabot`, e.g.:
+
+```yaml
+workflows:
+  pull-request-build:
+   jobs:
+    - vrsn/bump-version:
+       bump-type: patch
+       ssh-key-fingerprint: fingerprint-of-your-key
+       filters:
+         branches:
+           only:
+             - /^dependabot\/.*/
 ```

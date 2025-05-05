@@ -16,7 +16,7 @@ commands:
         enum: [major, minor, patch]
     steps:
       - run:
-          name: check version bump is valid
+          name: bump version
           command: vrsn bump << parameters.bump-type >> << parameters.additional-args >>
 
   check-version:
@@ -52,11 +52,17 @@ jobs:
         description: The executor to use during the check version job.
         default: vrsn
         type: executor
+      resource-class:
+        description: The resource class to use for the job.
+        default: small
+        type: enum
+        enum: [small, medium, medium+, large, xlarge, 2xlarge, 2xlarge+]
       working-directory:
         description: The directory the project will be checked out to.
         default: /repo
         type: string
     executor: << parameters.executor >>
+    resource_class: << parameters.resource-class >>
     steps:
       - checkout:
           path: << parameters.working-directory >>
@@ -69,25 +75,78 @@ jobs:
     parameters:
       additional-args:
         description: Additional arguments or flags to pass to the vrsn command.
-        default: ""
+        default: "--commit --commit-msg 'bump version from ci [skip ci]'"
         type: string
       bump-type:
         description: The version increment type you want to make.
         type: enum
         enum: [major, minor, patch]
+      check-before:
+        description: Check if the version has been incremented before bumping.
+        type: boolean
+        default: true
+      check-args:
+        description: Additional arguments or flags to pass to the vrsn check command.
+        default: ""
+        type: string
+      commiter-user-name:
+        description: The user.name git config value to use with the commit.
+        default: "${CIRCLE_PROJECT_USERNAME}"
+        type: string
+      commiter-email:
+        description: The user.email git config value to use with the commit.
+        default: "vrsn+ci-auto-bump"
+        type: string
       executor:
         description: The executor to use during the check version job.
         default: vrsn
         type: executor
+      resource-class:
+        description: The resource class to use for the job.
+        default: small
+        type: enum
+        enum: [small, medium, medium+, large, xlarge, 2xlarge, 2xlarge+]
+      ssh-key-fingerprint:
+        description: Finger print of the ssh key to use, required to commit the version bump back to the branch.
+        type: string
       working-directory:
         description: The directory the project will be checked out to.
         default: /repo
         type: string
     executor: << parameters.executor >>
+    resource_class: << parameters.resource-class >>
     steps:
+      - add_ssh_keys:
+          fingerprints: << parameters.ssh-key-fingerprint >>
       - checkout:
           path: << parameters.working-directory >>
+      - when:
+          condition: << parameters.check-before >>
+          steps:
+            - run:
+                name: check version before bumping
+                command: |
+                  # handle check failing
+                  set +eo pipefail
+                  cmd=$(vrsn check << parameters.check-args >>)
+                  if [ "$?" = 0 ]; then
+                    echo "version already bumped"
+                    circleci-agent step halt
+                  fi
+
+                  echo "version bump required"
+      - run:
+          name: set git config values
+          command: |
+            # https://support.circleci.com/hc/en-us/articles/360018860473-How-to-push-a-commit-back-to-the-same-repository-as-part-of-the-CircleCI-job
+            git config user.name << parameters.commiter-user-name >>
+            git config user.email << parameters.commiter-email >>
       - bump-version:
           additional-args: << parameters.additional-args >>
           bump-type: << parameters.bump-type >>
+      - run:
+          name: push bump to branch
+          command: |
+            apk add openssh
+            git push origin $CIRCLE_BRANCH
     working_directory: << parameters.working-directory >>

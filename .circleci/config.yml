@@ -6,6 +6,7 @@ orbs:
   vrsn: tx3stn/vrsn@volatile
 
 anchors:
+  dependabot-branch-regex: &dependabot-branch-regex /^dependabot\/.*/
   ignore-main: &ignore-main
     filters:
       branches:
@@ -17,7 +18,7 @@ anchors:
       branches:
         ignore:
           - main
-          - dependabot/*
+          - *dependabot-branch-regex
 
   only-main: &only-main
     filters:
@@ -29,7 +30,7 @@ anchors:
     filters:
       branches:
         only:
-          - dependabot/*
+          - *dependabot-branch-regex
 jobs:
   push-dev-tagged-orb:
     executor: circleci-cli/default
@@ -37,7 +38,11 @@ jobs:
       - checkout
       - run:
           name: publish dev tagged orb
-          command: circleci orb publish ./.circleci/orb.yml tx3stn/vrsn@dev:$CIRCLE_BRANCH --token $CIRCLECI_ORB_API_TOKEN
+          command: |
+            # get version from main branch to ensure docker container with tag exists for the orb to use.
+            VERSION=$(git --no-pager show main:VERSION | head -n 1)
+            sed -r "s/\"%%VRSN_VERSION%%\"/$VERSION/g" -i ./.circleci/orb.yml
+            circleci orb publish ./.circleci/orb.yml tx3stn/vrsn@dev:$CIRCLE_BRANCH --token $CIRCLECI_ORB_API_TOKEN
 
   push-live-tagged-orb:
     executor: circleci-cli/default
@@ -61,11 +66,12 @@ jobs:
 workflows:
   pull-request-build:
     jobs:
-      - vrsn/check-version:
-          <<: *ignore-main-and-dependabot
       - vrsn/bump-version:
           bump-type: patch
+          # ssh-key-fingerprint: SHA256:MWytBJLJVEh/0/9qNhvwcoAiM/dhuWpmxomHGGomiGI
           <<: *only-dependabot
+      - vrsn/check-version:
+          <<: *ignore-main-and-dependabot
       - validate-orb:
           <<: *ignore-main
       - push-dev-tagged-orb:
