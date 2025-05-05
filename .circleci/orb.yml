@@ -147,5 +147,6 @@ jobs:
       - run:
           name: push bump to branch
           command: |
+            apk add openssh
             git push origin $(git rev-parse --abbrev-ref HEAD)
     working_directory: << parameters.working-directory >>
