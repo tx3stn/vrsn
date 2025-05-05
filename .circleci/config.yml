@@ -3,7 +3,6 @@ version: 2.1
 
 orbs:
   circleci-cli: circleci/circleci-cli@volatile
-  path-filtering: circleci/path-filtering@0.1.3
   vrsn: tx3stn/vrsn@volatile
 
 anchors:
@@ -13,12 +12,24 @@ anchors:
         ignore:
           - main
 
+  ignore-main-and-dependabot: &ignore-main-and-dependabot
+    filters:
+      branches:
+        ignore:
+          - main
+          - dependabot/*
+
   only-main: &only-main
     filters:
       branches:
         only:
           - main
 
+  only-dependabot: &only-dependabot
+    filters:
+      branches:
+        only:
+          - dependabot/*
 jobs:
   push-dev-tagged-orb:
     executor: circleci-cli/default
@@ -51,7 +62,10 @@ workflows:
   pull-request-build:
     jobs:
       - vrsn/check-version:
-          <<: *ignore-main
+          <<: *ignore-main-and-dependabot
+      - vrsn/bump-version:
+          bump-type: patch
+          <<: *only-dependabot
       - validate-orb:
           <<: *ignore-main
       - push-dev-tagged-orb:
