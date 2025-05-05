@@ -68,6 +68,8 @@ workflows:
     jobs:
       - vrsn/bump-version:
           bump-type: patch
+          requires:
+            - push-dev-tagged-orb
       - validate-orb:
           <<: *ignore-main
       - push-dev-tagged-orb:
