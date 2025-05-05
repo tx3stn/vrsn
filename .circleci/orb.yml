@@ -75,7 +75,7 @@ jobs:
     parameters:
       additional-args:
         description: Additional arguments or flags to pass to the vrsn command.
-        default: "--commit --commit-msg 'bump version from ci [skip ci]'"
+        default: "--commit --commit-msg 'bump version from ci'"
         type: string
       bump-type:
         description: The version increment type you want to make.
