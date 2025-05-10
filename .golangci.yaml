@@ -8,6 +8,7 @@ linters:
     - varnamelen  # impractical IRL.
     - godox  # TODO statements are useful and shouldn't make a linter error.
     - exhaustruct  # more annoying than useful.
+    - forbidigo
   exclusions:
     rules:
       - path: 'internal\/flags\/vars\.go'

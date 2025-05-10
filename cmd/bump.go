@@ -60,7 +60,8 @@ func NewCmdBump() *cobra.Command {
 					return fmt.Errorf("error getting selected increment: %w", err)
 				}
 			} else {
-				newVersion, err = prompt.SelectBumpType(currentVersion)
+				bump := prompt.NewBumpSelector()
+				newVersion, err = bump.Select(currentVersion)
 				if err != nil {
 					return fmt.Errorf("error selecting bump type: %w", err)
 				}
