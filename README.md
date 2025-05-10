@@ -5,7 +5,7 @@
   <em>A single tool for <strong>all</strong> of your semantic versioning needs.</em>
 </p>
 
-![vrsn-demo](https://user-images.githubusercontent.com/14163530/204849040-39c8d4e2-80ef-4722-a04a-14a575ea4638.gif)
+![vrsn-demo](https://github.com/user-attachments/assets/9e7d5ac2-bde2-40b6-9825-27dc25647370)
 
 ## Contents
 
