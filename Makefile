@@ -15,17 +15,10 @@ build:
 build-image:
 	@docker build --tag ${BINARY_NAME}:local .
 
-.PHONY: build-image-demo-gif
-build-image-demo-gif:
+.PHONY: generate-gifs
+generate-gifs: 
 	@docker build --tag ${BINARY_NAME}-vhs:demo -f ./.docker/demo-gif.Dockerfile .
-
-.PHONY: demo-gif
-demo-gif: build build-image-demo-gif
-	@docker run --rm -v ${PWD}:/vhs ${BINARY_NAME}-vhs:demo /vhs/scripts/demo.tape
-
-.PHONY: fmt
-fmt:
-	@go fmt ${DIR}
+	@docker run --rm -v ${PWD}:/vhs ${BINARY_NAME}-vhs:demo /vhs/.scripts/demo.tape
 
 .PHONY: install
 install: build
@@ -34,11 +27,6 @@ install: build
 .PHONY: lint
 lint:
 	@golangci-lint run -v ${DIR}
-
-.PHONY: push-tag
-push-tag:
-	@git tag -a ${VERSION} -m "Release ${VERSION}"
-	@git push origin ${VERSION}
 
 .PHONY: test
 test:
