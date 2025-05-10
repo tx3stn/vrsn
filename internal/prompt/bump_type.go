@@ -8,31 +8,55 @@ import (
 	"github.com/tx3stn/vrsn/internal/version"
 )
 
-// SelectBumpType prompts the user to select the type of version increment they
-// wish to use.
-func SelectBumpType(currentVersion string) (string, error) {
+// BumpTypeSelectorFunc is the type def for the selector func used in the BumpSelector struct.
+type BumpTypeSelectorFunc func(version.BumpOptions) (string, error)
+
+// BumpSelector is a utility struct to enable mocking calls of the selector prompt for easier testability.
+type BumpSelector struct {
+	selectorFunc BumpTypeSelectorFunc
+}
+
+// NewBumpSelector creates a new instance of the bump selector.
+func NewBumpSelector() BumpSelector {
+	return BumpSelector{
+		selectorFunc: selectBumpType,
+	}
+}
+
+// Select prompts the user to select a bump type.
+func (b BumpSelector) Select(currentVersion string) (string, error) {
 	versionOptions, err := version.GetBumpOptions(currentVersion)
 	if err != nil {
 		return "", fmt.Errorf("error getting bump options: %w", err)
 	}
 
+	selected, err := b.selectorFunc(versionOptions)
+	if err != nil {
+		return "", err
+	}
+
+	//nolint:wrapcheck
+	return versionOptions.SelectedIncrement(selected)
+}
+
+// selectBumpType prompts the user to select the type of version increment they
+// wish to use.
+func selectBumpType(opts version.BumpOptions) (string, error) {
 	answer := struct {
 		Selected string `survey:"bump"`
 	}{}
 
-	err = survey.Ask([]*survey.Question{
+	if err := survey.Ask([]*survey.Question{
 		{
 			Name: "bump",
 			Prompt: &survey.Select{
 				Message: "select version bump type:",
-				Options: versionOptions.PromptOptions(),
+				Options: opts.PromptOptions(),
 			},
 		},
-	}, &answer)
-	if err != nil {
+	}, &answer); err != nil {
 		return "", fmt.Errorf("error prompting to selection version bump type: %w", err)
 	}
 
-	//nolint:wrapcheck
-	return versionOptions.SelectedIncrement(answer.Selected)
+	return answer.Selected, nil
 }
