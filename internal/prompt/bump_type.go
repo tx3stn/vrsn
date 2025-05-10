@@ -13,13 +13,13 @@ type BumpTypeSelectorFunc func(version.BumpOptions) (string, error)
 
 // BumpSelector is a utility struct to enable mocking calls of the selector prompt for easier testability.
 type BumpSelector struct {
-	selectorFunc BumpTypeSelectorFunc
+	SelectorFunc BumpTypeSelectorFunc
 }
 
 // NewBumpSelector creates a new instance of the bump selector.
 func NewBumpSelector() BumpSelector {
 	return BumpSelector{
-		selectorFunc: selectBumpType,
+		SelectorFunc: selectBumpType,
 	}
 }
 
@@ -27,10 +27,10 @@ func NewBumpSelector() BumpSelector {
 func (b BumpSelector) Select(currentVersion string) (string, error) {
 	versionOptions, err := version.GetBumpOptions(currentVersion)
 	if err != nil {
-		return "", fmt.Errorf("error getting bump options: %w", err)
+		return "", fmt.Errorf("%w: %w", ErrGettingBumpOptions, err)
 	}
 
-	selected, err := b.selectorFunc(versionOptions)
+	selected, err := b.SelectorFunc(versionOptions)
 	if err != nil {
 		return "", err
 	}
