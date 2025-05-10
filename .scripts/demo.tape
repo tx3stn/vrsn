@@ -37,7 +37,7 @@ Enter 2
 
 Type "vrsn check"
 Enter 2
-Sleep 3s
+Sleep 5s
 
 Set TypingSpeed 0s
 Hide
