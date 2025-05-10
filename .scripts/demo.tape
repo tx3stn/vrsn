@@ -1,7 +1,10 @@
+Set Height 1000
 Output demo.gif
 Require git
 Set Theme "OneDark"
-Set Height 1000
+Set Margin 20
+Set MarginFill "#005869"
+Set BorderRadius 30
 
 Hide
 Type "alias vrsn=$(pwd)/vrsn"
@@ -10,7 +13,7 @@ Type "clear"
 Enter
 Show
 
-Set TypingSpeed 0.2s
+Set TypingSpeed 0.16s
 Type "vrsn"
 Enter 2
 Sleep 2s
