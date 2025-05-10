@@ -3,8 +3,9 @@ package prompt
 
 import (
 	"fmt"
+	"strings"
 
-	"github.com/AlecAivazis/survey/v2"
+	"github.com/charmbracelet/huh"
 	"github.com/tx3stn/vrsn/internal/version"
 )
 
@@ -42,21 +43,18 @@ func (b BumpSelector) Select(currentVersion string) (string, error) {
 // selectBumpType prompts the user to select the type of version increment they
 // wish to use.
 func selectBumpType(opts version.BumpOptions) (string, error) {
-	answer := struct {
-		Selected string `survey:"bump"`
-	}{}
+	var selected string
 
-	if err := survey.Ask([]*survey.Question{
-		{
-			Name: "bump",
-			Prompt: &survey.Select{
-				Message: "select version bump type:",
-				Options: opts.PromptOptions(),
-			},
-		},
-	}, &answer); err != nil {
-		return "", fmt.Errorf("error prompting to selection version bump type: %w", err)
+	prompt := huh.NewSelect[string]().
+		Options(huh.NewOptions(opts.PromptOptions()...)...).
+		Title("select version bump type:").
+		Value(&selected)
+
+	if err := prompt.Run(); err != nil {
+		return "", fmt.Errorf("error prompting for bump type: %w", err)
 	}
 
-	return answer.Selected, nil
+	fmt.Println(strings.ReplaceAll(prompt.View(), "\n", ""))
+
+	return selected, nil
 }
