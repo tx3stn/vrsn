@@ -5,6 +5,17 @@ import (
 	"strings"
 )
 
+// AddTag adds the specified tag.
+func AddTag(dir string, tag string, message string) error {
+	_, err := gitCommand(
+		dir,
+		"error adding tag",
+		"tag", "-a", tag, "-m", message,
+	)
+
+	return err
+}
+
 // LatestTag returns the latest git tag on the current branch.
 func LatestTag(dir string) (string, error) {
 	allTags, err := VersionTags(dir)
@@ -13,6 +24,7 @@ func LatestTag(dir string) (string, error) {
 	}
 
 	if len(allTags) == 0 {
+		//nolint:err113
 		return "", errors.New("no git tags found")
 	}
 
