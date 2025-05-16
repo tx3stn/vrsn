@@ -33,7 +33,7 @@ func NewCmdBump() *cobra.Command {
 			log.Debugf("bump command args: %s", args)
 
 			if flags.GitTag {
-				return bumpGitTag(curDir, args)
+				return bumpGitTag(curDir, args, log)
 			}
 
 			versionFileFinder := files.VersionFileFinder{
@@ -148,11 +148,13 @@ func getNewVersion(currentVersion string, args []string) (string, error) {
 	return newVersion, nil
 }
 
-func bumpGitTag(curDir string, args []string) error {
+func bumpGitTag(curDir string, args []string, log logger.Basic) error {
 	currentVersion, err := git.LatestTag(curDir)
 	if err != nil {
 		return fmt.Errorf("error getting latest tag: %w", err)
 	}
+
+	log.Debugf("current git tag version: %s", currentVersion)
 
 	newVersion, err := getNewVersion(currentVersion, args)
 	if err != nil {
@@ -166,6 +168,8 @@ func bumpGitTag(curDir string, args []string) error {
 	if err := git.AddTag(curDir, newVersion, flags.TagMsg); err != nil {
 		return fmt.Errorf("error adding tag: %w", err)
 	}
+
+	log.Debugf("new git tag added: %s", newVersion)
 
 	return nil
 }
