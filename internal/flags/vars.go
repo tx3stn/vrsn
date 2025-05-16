@@ -11,6 +11,9 @@ var (
 	// CommitMsg is the variable for the CLI flag `--commit-msg` used when
 	// committing version file changes with the `bump` command.
 	CommitMsg string
+	// GitTag is the variable for the CLI flag `--git-tag` used to read the version from
+	// the git tags.
+	GitTag bool
 	// Now is the variable for the CLI flag `--now`.
 	Now string
 	// Was is the variable for the CLI flag `--was`.
