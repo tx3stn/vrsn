@@ -1,0 +1,34 @@
+package git
+
+import (
+	"errors"
+	"strings"
+)
+
+// LatestTag returns the latest git tag on the current branch.
+func LatestTag(dir string) (string, error) {
+	allTags, err := VersionTags(dir)
+	if err != nil {
+		return "", err
+	}
+
+	if len(allTags) == 0 {
+		return "", errors.New("no git tags found")
+	}
+
+	return allTags[len(allTags)-1], nil
+}
+
+// VersionTags returns all tags that match the semantic version syntax.
+func VersionTags(dir string) ([]string, error) {
+	all, err := gitCommand(
+		dir,
+		"error getting version tags",
+		"--no-pager", "tag", "--list", "'*.*.*'",
+	)
+	if err != nil {
+		return []string{}, err
+	}
+
+	return strings.Split(all, "\n"), nil
+}
