@@ -36,7 +36,7 @@ func VersionTags(dir string) ([]string, error) {
 	all, err := gitCommand(
 		dir,
 		"error getting version tags",
-		"--no-pager", "tag", "--list", "'*.*.*'",
+		"--no-pager", "tag", "--list", "*.*.*",
 	)
 	if err != nil {
 		return []string{}, err
