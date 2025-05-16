@@ -16,7 +16,7 @@ import (
 // NewCmdBump creates the bump command.
 // TODO: split this out into smaller chunks and remove nolint.
 //
-//nolint:cyclop,funlen
+//nolint:funlen
 func NewCmdBump() *cobra.Command {
 	shortDescription := "Increment the current semantic version with a valid patch, major or minor bump."
 
@@ -31,6 +31,10 @@ func NewCmdBump() *cobra.Command {
 			}
 
 			log.Debugf("bump command args: %s", args)
+
+			if flags.GitTag {
+				return bumpGitTag(curDir, args, log)
+			}
 
 			versionFileFinder := files.VersionFileFinder{
 				FileFlag:  flags.VersionFile,
@@ -48,23 +52,9 @@ func NewCmdBump() *cobra.Command {
 				return fmt.Errorf("errpr getting version from file: %w", err)
 			}
 
-			var newVersion string
-			if len(args) > 0 {
-				options, err := version.GetBumpOptions(currentVersion)
-				if err != nil {
-					return fmt.Errorf("error getting bump options: %w", err)
-				}
-
-				newVersion, err = options.SelectedIncrement(args[0])
-				if err != nil {
-					return fmt.Errorf("error getting selected increment: %w", err)
-				}
-			} else {
-				bump := prompt.NewBumpSelector()
-				newVersion, err = bump.Select(currentVersion)
-				if err != nil {
-					return fmt.Errorf("error selecting bump type: %w", err)
-				}
+			newVersion, err := getNewVersion(currentVersion, args)
+			if err != nil {
+				return err
 			}
 
 			if err := files.WriteVersionToFile(curDir, versionFile, newVersion); err != nil {
@@ -118,6 +108,68 @@ The semantic version in the version file will be updated in place.`, shortDescri
 			"bump version",
 			"Customise the commit message used when committing the version bump.",
 		)
+	cmd.Flags().
+		BoolVar(&flags.GitTag, "git-tag", false, "Use git tags rather than a version file.")
+	cmd.Flags().
+		StringVar(
+			&flags.TagMsg,
+			"tag-msg",
+			"",
+			"Customise the tag message used when adding the version tag.",
+		)
 
 	return cmd
+}
+
+func getNewVersion(currentVersion string, args []string) (string, error) {
+	var newVersion string
+
+	var err error
+
+	if len(args) > 0 {
+		options, err := version.GetBumpOptions(currentVersion)
+		if err != nil {
+			return "", fmt.Errorf("error getting bump options: %w", err)
+		}
+
+		newVersion, err = options.SelectedIncrement(args[0])
+		if err != nil {
+			return "", fmt.Errorf("error getting selected increment: %w", err)
+		}
+	} else {
+		bump := prompt.NewBumpSelector()
+
+		newVersion, err = bump.Select(currentVersion)
+		if err != nil {
+			return "", fmt.Errorf("error selecting bump type: %w", err)
+		}
+	}
+
+	return newVersion, nil
+}
+
+func bumpGitTag(curDir string, args []string, log logger.Basic) error {
+	currentVersion, err := git.LatestTag(curDir)
+	if err != nil {
+		return fmt.Errorf("error getting latest tag: %w", err)
+	}
+
+	log.Debugf("current git tag version: %s", currentVersion)
+
+	newVersion, err := getNewVersion(currentVersion, args)
+	if err != nil {
+		return err
+	}
+
+	if flags.TagMsg == "" {
+		flags.TagMsg = "Release " + newVersion
+	}
+
+	if err := git.AddTag(curDir, newVersion, flags.TagMsg); err != nil {
+		return fmt.Errorf("error adding tag: %w", err)
+	}
+
+	log.Debugf("new git tag added: %s", newVersion)
+
+	return nil
 }

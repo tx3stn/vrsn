@@ -4,25 +4,25 @@ PWD ?= $(shell pwd)
 VERSION ?= $(shell head -n 1 VERSION)
 
 define circleci-docker
-	docker run --rm -v ${PWD}/.circleci:/repo circleci/circleci-cli:alpine 
+	docker run --rm -v ${PWD}/.circleci:/repo circleci/circleci-cli:alpine
 endef
 
 .PHONY: build
 build:
-	@GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-X github.com/tx3stn/vrsn/cmd.Version=${VERSION}" -o ${BINARY_NAME}
+	@CGO_ENABLED=0 go build -ldflags "-X github.com/tx3stn/vrsn/cmd.Version=${VERSION}" -o ${BINARY_NAME}
 
 .PHONY: build-image
 build-image:
 	@docker build --tag ${BINARY_NAME}:local .
 
 .PHONY: generate-gifs
-generate-gifs: 
+generate-gifs:
 	@docker build --tag ${BINARY_NAME}-vhs:demo -f ./.docker/demo-gif.Dockerfile .
 	@docker run --rm -v ${PWD}:/vhs ${BINARY_NAME}-vhs:demo /vhs/.scripts/demo.tape
 
 .PHONY: install
 install: build
-	@sudo cp ./${BINARY_NAME} /usr/bin/${BINARY_NAME}
+	@sudo cp ./${BINARY_NAME} /usr/local/bin/${BINARY_NAME}
 
 .PHONY: lint
 lint:

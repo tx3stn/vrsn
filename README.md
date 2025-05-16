@@ -36,6 +36,7 @@ Currently supported version files:
 | `pyproject.toml` | ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) |
 | `setup.py` | ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54) |
 | `VERSION` | ![Go](https://img.shields.io/badge/go-%2300ADD8.svg?style=for-the-badge&logo=go&logoColor=white) + more |
+| `git tags` | ![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=fff) |
 
 Don't see your favourite version file type in that list?
 See the [CONTRIBUTING guide](./.github/CONTRIBUTING.md) for how to (easily) add
@@ -68,7 +69,7 @@ If you have go installed, you can clone this repo and run:
 make install
 ```
 
-This will build the binary and then copy it to `/usr/bin/vrsn` so it will be
+This will build the binary and then copy it to `/usr/local/bin/vrsn` so it will be
 available on your path. Nothing more to it.
 
 ### Run the Docker container
@@ -187,6 +188,13 @@ write a script to iterate over each service that needs bumping and use the
 
 ```bash
 find ./services -type f -name 'VERSION' -exec vrsn bump patch --file {} \
+```
+
+Use git tags rather than a version file? Pass the `--git-tag` flag to read from
+the existing tags and write a new tag. e.g.:
+
+```bash
+vrsn bump --git-tag --tag-msg 'custom tag message'
 ```
 
 ## Running in Docker

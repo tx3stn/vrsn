@@ -11,13 +11,19 @@ var (
 	// CommitMsg is the variable for the CLI flag `--commit-msg` used when
 	// committing version file changes with the `bump` command.
 	CommitMsg string
+	// GitTag is the variable for the CLI flag `--git-tag` used to read the version from
+	// the git tags.
+	GitTag bool
 	// Now is the variable for the CLI flag `--now`.
 	Now string
-	// Was is the variable for the CLI flag `--was`.
-	Was string
+	// TagMsg is the variable for the CLI flag `--tag-msg` to add a custom git tag
+	// message. Only used with the `--git-tag` flag.
+	TagMsg string
 	// Verbose is the variable for the CLI flag `--verbose` to enable debug log output.
 	Verbose bool
 	// VersionFile is the variable for the CLI flag `--file` to provide a specific
 	// version file path, rather than having vrsn try and work out what to use.
 	VersionFile string
+	// Was is the variable for the CLI flag `--was`.
+	Was string
 )
