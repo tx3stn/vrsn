@@ -69,7 +69,7 @@ If you have go installed, you can clone this repo and run:
 make install
 ```
 
-This will build the binary and then copy it to `/usr/bin/vrsn` so it will be
+This will build the binary and then copy it to `/usr/local/bin/vrsn` so it will be
 available on your path. Nothing more to it.
 
 ### Run the Docker container
