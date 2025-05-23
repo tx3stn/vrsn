@@ -16,6 +16,7 @@
   - [Run the Docker container](#run-the-docker-container)
   - [Use the CircleCI orb](#use-the-circleci-orb)
 - [Commands](#commands)
+- [Setting defaults in a config file](#setting-defaults-in-a-config-file)
 - [Running in Docker](#running-in-docker)
 - [CI usage examples](#ci-usage-examples)
 
@@ -196,6 +197,16 @@ the existing tags and write a new tag. e.g.:
 ```bash
 vrsn bump --git-tag --tag-msg 'custom tag message'
 ```
+
+## Setting defaults in a config file
+
+If you always want `vrsn` to use specific flags, you can set default values for
+them in a config file at `$XDG_CONFIG_DIR/vrsn.toml` or `$HOME/.config/vrsn.toml`.
+
+An example config file can be found at [./.schema/vrsn.toml](./.schema/vrsn.toml).
+
+Use this file to always `--commit` by default or to always use your own custom
+`--commit-msg`.
 
 ## Running in Docker
 

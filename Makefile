@@ -3,8 +3,16 @@ DIR ?= ./...
 PWD ?= $(shell pwd)
 VERSION ?= $(shell head -n 1 VERSION)
 
+define ajv-docker
+	docker run --rm -v "${PWD}":/repo weibeld/ajv-cli:5.0.0 ajv --spec draft7
+endef
+
 define circleci-docker
 	docker run --rm -v ${PWD}/.circleci:/repo circleci/circleci-cli:alpine
+endef
+
+define taplo-docker
+	docker run --rm -v "${PWD}":/repo tamasfe/taplo:0.10.0 
 endef
 
 .PHONY: build
@@ -39,3 +47,12 @@ validate-ci:
 .PHONY: validate-orb
 validate-orb:
 	@$(circleci-docker) orb validate /repo/orb.yml
+
+.PHONY: validate-example-config
+validate-example-config:
+	@$(taplo-docker) --verbose lint /repo/.schema/vrsn.toml
+
+.PHONY: validate-schema
+validate-schema:
+	@$(ajv-docker) compile -s /repo/.schema/vrsn.json
+
