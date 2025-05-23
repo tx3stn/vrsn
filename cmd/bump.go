@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/tx3stn/vrsn/internal/config"
 	"github.com/tx3stn/vrsn/internal/files"
 	"github.com/tx3stn/vrsn/internal/flags"
 	"github.com/tx3stn/vrsn/internal/git"
@@ -30,6 +31,13 @@ func NewCmdBump() *cobra.Command {
 			if err != nil {
 				return fmt.Errorf("error getting current working directory: %w", err)
 			}
+
+			conf, err := config.Get()
+			if err != nil {
+				return fmt.Errorf("error getting config: %w", err)
+			}
+
+			log.Debugf("config: %+v", conf)
 
 			log.Debugf("bump command args: %s", args)
 
@@ -124,8 +132,8 @@ The semantic version in the version file will be updated in place.`, shortDescri
 		os.Exit(1)
 	}
 
-	if err := viper.BindPFlag("commitMsg", cmd.Flags().Lookup("commit-msg")); err != nil {
-		fmt.Printf("error binding commitMsg flag: %s", err)
+	if err := viper.BindPFlag("commit-msg", cmd.Flags().Lookup("commit-msg")); err != nil {
+		fmt.Printf("error binding commit-msg flag: %s", err)
 		os.Exit(1)
 	}
 
