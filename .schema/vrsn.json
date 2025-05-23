@@ -1,5 +1,5 @@
 {
-	"$schema": "https://json-schema.org/draft-04/schema",
+	"$schema": "http://json-schema.org/draft-07/schema",
 	"$id": "https://github.com/tx3stn/vrsn/blob/main/.schema/vrsn.json",
 	"title": "vrsn config file",
 	"description": "configuration file to set default options for vrsn commands.",

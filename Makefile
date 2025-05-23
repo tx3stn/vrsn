@@ -3,6 +3,10 @@ DIR ?= ./...
 PWD ?= $(shell pwd)
 VERSION ?= $(shell head -n 1 VERSION)
 
+define ajv-docker
+	docker run --rm -v "${PWD}":/repo weibeld/ajv-cli:5.0.0 ajv --spec draft7
+endef
+
 define circleci-docker
 	docker run --rm -v ${PWD}/.circleci:/repo circleci/circleci-cli:alpine
 endef
@@ -27,6 +31,10 @@ install: build
 .PHONY: lint
 lint:
 	@golangci-lint run -v ${DIR}
+
+.PHONY: schema-validate
+schema-validate:
+	@$(ajv-docker) compile -s /repo/.schema/vrsn.json
 
 .PHONY: test
 test:
