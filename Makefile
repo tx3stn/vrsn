@@ -11,6 +11,10 @@ define circleci-docker
 	docker run --rm -v ${PWD}/.circleci:/repo circleci/circleci-cli:alpine
 endef
 
+define taplo-docker
+	docker run --rm -v "${PWD}":/repo tamasfe/taplo:0.10.0 
+endef
+
 .PHONY: build
 build:
 	@CGO_ENABLED=0 go build -ldflags "-X github.com/tx3stn/vrsn/cmd.Version=${VERSION}" -o ${BINARY_NAME}
@@ -32,10 +36,6 @@ install: build
 lint:
 	@golangci-lint run -v ${DIR}
 
-.PHONY: schema-validate
-schema-validate:
-	@$(ajv-docker) compile -s /repo/.schema/vrsn.json
-
 .PHONY: test
 test:
 	@CGO_ENABLED=1 go test ${DIR} -race -cover
@@ -47,3 +47,12 @@ validate-ci:
 .PHONY: validate-orb
 validate-orb:
 	@$(circleci-docker) orb validate /repo/orb.yml
+
+.PHONY: validate-example-config
+validate-example-config:
+	@$(taplo-docker) --verbose lint /repo/.schema/vrsn.toml
+
+.PHONY: validate-schema
+validate-schema:
+	@$(ajv-docker) compile -s /repo/.schema/vrsn.json
+
