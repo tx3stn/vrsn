@@ -11,6 +11,9 @@ var (
 	// CommitMsg is the variable for the CLI flag `--commit-msg` used when
 	// committing version file changes with the `bump` command.
 	CommitMsg string
+	// ConfigFile is the variable for the CLI flag `--config` used to specify a config
+	// file not stored in the default location.
+	ConfigFile string
 	// GitTag is the variable for the CLI flag `--git-tag` used to read the version from
 	// the git tags.
 	GitTag bool
