@@ -6,7 +6,7 @@ on:
       - .schema/*
 
 jobs:
-  lint-config-example:
+  lint-schema:
     permissions:
       contents: read
     runs-on: ubuntu-latest
