@@ -1,0 +1,22 @@
+name: lint schema
+
+on:
+  pull_request:
+    paths:
+      - .schema/*
+
+jobs:
+  lint-config-example:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install -g @taplo/cli ajv-cli
+      - run: ajv --spec draft7 compile -s .schema/vrsn.json
+        name: validate schema
+      - run: taplo --verbose lint .schema/vrsn.toml
+        name: validate example config file
