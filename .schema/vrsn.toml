@@ -1,0 +1,3 @@
+#:schema https://github.com/tx3stn/vrsn/blob/main/.schema/vrsn.json
+commit = true
+commitMsg = 'custom commit message'

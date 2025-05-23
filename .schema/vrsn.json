@@ -1,0 +1,21 @@
+{
+	"$schema": "https://json-schema.org/draft-04/schema",
+	"$id": "https://github.com/tx3stn/vrsn/blob/main/.schema/vrsn.json",
+	"title": "vrsn config file",
+	"description": "configuration file to set default options for vrsn commands.",
+	"type": "object",
+	"properties": {
+		"commit": {
+			"description": "If the bump command should automatically commit the edited version file.",
+			"type": "boolean"
+		},
+		"commitMsg": {
+			"description": "The commit message to use when the bump command commits the version file.",
+			"type": "string"
+		}
+	},
+	"required": [
+		"commit",
+		"commitMsg"
+	]
+}
