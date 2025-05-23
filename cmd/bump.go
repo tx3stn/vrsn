@@ -18,7 +18,7 @@ import (
 // NewCmdBump creates the bump command.
 // TODO: split this out into smaller chunks and remove nolint.
 //
-//nolint:funlen
+//nolint:funlen,cyclop
 func NewCmdBump() *cobra.Command {
 	shortDescription := "Increment the current semantic version with a valid patch, major or minor bump."
 
@@ -72,7 +72,7 @@ func NewCmdBump() *cobra.Command {
 
 			log.Infof("version bumped from %s to %s", currentVersion, newVersion)
 
-			if flags.Commit {
+			if viper.Get("commit") == true {
 				addOutput, err := git.Add(curDir, versionFile)
 				if err != nil {
 					log.Infof("git add output: %s", addOutput)
@@ -80,7 +80,12 @@ func NewCmdBump() *cobra.Command {
 					return fmt.Errorf("error git adding files: %w", err)
 				}
 
-				commitOutput, err := git.Commit(curDir, versionFile, flags.CommitMsg)
+				msg, ok := viper.Get("commit-msg").(string)
+				if !ok {
+					return fmt.Errorf("error getting commit-msg: %w", err)
+				}
+
+				commitOutput, err := git.Commit(curDir, versionFile, msg)
 				if err != nil {
 					log.Infof("git commit output: %s", commitOutput)
 
@@ -108,15 +113,25 @@ The semantic version in the version file will be updated in place.`, shortDescri
 		ValidArgs:     []string{"patch", "major", "minor"},
 	}
 
+	cmd.Flags().Bool("commit", false, "Commit the updated version file after bumping.")
+
+	if err := viper.BindPFlag("commit", cmd.Flags().Lookup("commit")); err != nil {
+		fmt.Printf("error binding commit flag: %s", err)
+		os.Exit(1)
+	}
+
 	cmd.Flags().
-		BoolVar(&flags.Commit, "commit", false, "Commit the updated version file after bumping.")
-	cmd.Flags().
-		StringVar(
-			&flags.CommitMsg,
+		String(
 			"commit-msg",
 			"bump version",
 			"Customise the commit message used when committing the version bump.",
 		)
+
+	if err := viper.BindPFlag("commit-msg", cmd.Flags().Lookup("commit-msg")); err != nil {
+		fmt.Printf("error binding commit-msg flag: %s", err)
+		os.Exit(1)
+	}
+
 	cmd.Flags().
 		BoolVar(&flags.GitTag, "git-tag", false, "Use git tags rather than a version file.")
 	cmd.Flags().
@@ -126,16 +141,6 @@ The semantic version in the version file will be updated in place.`, shortDescri
 			"",
 			"Customise the tag message used when adding the version tag.",
 		)
-
-	if err := viper.BindPFlag("commit", cmd.Flags().Lookup("commit")); err != nil {
-		fmt.Printf("error binding commit flag: %s", err)
-		os.Exit(1)
-	}
-
-	if err := viper.BindPFlag("commit-msg", cmd.Flags().Lookup("commit-msg")); err != nil {
-		fmt.Printf("error binding commit-msg flag: %s", err)
-		os.Exit(1)
-	}
 
 	return cmd
 }
