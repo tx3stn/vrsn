@@ -15,8 +15,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install -g @taplo/cli ajv-cli
+      - run: npm install -g ajv-cli
+        name: install ajv-cli
       - run: ajv --spec draft7 compile -s .schema/vrsn.json
         name: validate schema
-      - run: npx @taplo/cli --verbose lint .schema/vrsn.toml
+      - run: |
+          curl -Ls "https://github.com/tamasfe/taplo/releases/latest/download/taplo-linux-x86_64.gz" | \
+            gzip -d - | install -m 755 /dev/stdin /usr/local/bin/taplo
+        name: install taplo
+      - run: taplo --verbose lint .schema/vrsn.toml
         name: validate example config file
