@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.com/tx3stn/vrsn/internal/files"
 	"github.com/tx3stn/vrsn/internal/flags"
 	"github.com/tx3stn/vrsn/internal/git"
@@ -117,6 +118,16 @@ The semantic version in the version file will be updated in place.`, shortDescri
 			"",
 			"Customise the tag message used when adding the version tag.",
 		)
+
+	if err := viper.BindPFlag("commit", cmd.Flags().Lookup("commit")); err != nil {
+		fmt.Printf("error binding commit flag: %s", err)
+		os.Exit(1)
+	}
+
+	if err := viper.BindPFlag("commitMsg", cmd.Flags().Lookup("commit-msg")); err != nil {
+		fmt.Printf("error binding commitMsg flag: %s", err)
+		os.Exit(1)
+	}
 
 	return cmd
 }
