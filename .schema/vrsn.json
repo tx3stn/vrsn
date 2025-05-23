@@ -9,13 +9,13 @@
 			"description": "If the bump command should automatically commit the edited version file.",
 			"type": "boolean"
 		},
-		"commitMsg": {
+		"commit-msg": {
 			"description": "The commit message to use when the bump command commits the version file.",
 			"type": "string"
 		}
 	},
 	"required": [
 		"commit",
-		"commitMsg"
+		"commit-msg"
 	]
 }

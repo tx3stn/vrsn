@@ -72,7 +72,7 @@ func NewCmdBump() *cobra.Command {
 
 			log.Infof("version bumped from %s to %s", currentVersion, newVersion)
 
-			if viper.Get("commit") == true {
+			if conf.Commit {
 				addOutput, err := git.Add(curDir, versionFile)
 				if err != nil {
 					log.Infof("git add output: %s", addOutput)
@@ -80,12 +80,7 @@ func NewCmdBump() *cobra.Command {
 					return fmt.Errorf("error git adding files: %w", err)
 				}
 
-				msg, ok := viper.Get("commit-msg").(string)
-				if !ok {
-					return fmt.Errorf("error getting commit-msg: %w", err)
-				}
-
-				commitOutput, err := git.Commit(curDir, versionFile, msg)
+				commitOutput, err := git.Commit(curDir, versionFile, conf.CommitMsg)
 				if err != nil {
 					log.Infof("git commit output: %s", commitOutput)
 

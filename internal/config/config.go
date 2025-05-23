@@ -12,7 +12,7 @@ type (
 	// Config represents the options available in the config file.
 	Config struct {
 		Commit    bool   `toml:"commit"`
-		CommitMsg string `toml:"commitMsg"`
+		CommitMsg string `toml:"commit-msg"`
 	}
 )
 
