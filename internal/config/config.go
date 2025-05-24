@@ -19,6 +19,8 @@ type (
 	BumpOpts struct {
 		Commit    bool   `toml:"commit"`
 		CommitMsg string `toml:"commit-msg"`
+		GitTag    bool   `toml:"git-tag"`
+		TagMsg    string `toml:"tag-msg"`
 	}
 )
 

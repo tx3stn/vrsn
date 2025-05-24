@@ -19,11 +19,21 @@
 				"commit-msg": {
 					"description": "The commit message to use when the bump command commits the version file.",
 					"type": "string"
+				},
+				"git-tag": {
+					"description": "If the bump command should use git tags rather than a version file.",
+					"type": "boolean"
+				},
+				"tag-msg": {
+					"description": "The message to use when adding the git tag.",
+					"type": "string"
 				}
 			},
 			"required": [
 				"commit",
-				"commit-msg"
+				"commit-msg",
+				"git-tag",
+				"tag-msg"
 			],
 			"additionalProperties": false
 		}

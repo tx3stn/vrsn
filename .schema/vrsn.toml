@@ -4,3 +4,5 @@ verbose = true
 [bump]
 commit = true
 commit-msg = 'custom commit message'
+git-tag = false
+tag-msg = 'custom git tag message'
