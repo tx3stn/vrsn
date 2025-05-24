@@ -11,9 +11,14 @@ import (
 type (
 	// Config represents the options available in the config file.
 	Config struct {
+		Bump    BumpOpts `toml:"bump"`
+		Verbose bool     `toml:"verbose"`
+	}
+
+	// BumpOpts are the vrsn bump specific options in the config file.
+	BumpOpts struct {
 		Commit    bool   `toml:"commit"`
 		CommitMsg string `toml:"commit-msg"`
-		Verbose   bool   `toml:"verbose"`
 	}
 )
 

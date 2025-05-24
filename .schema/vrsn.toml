@@ -1,4 +1,6 @@
 #:schema ./vrsn.json
 verbose = true
+
+[bump]
 commit = true
 commit-msg = 'custom commit message'
