@@ -13,6 +13,7 @@ type (
 	Config struct {
 		Commit    bool   `toml:"commit"`
 		CommitMsg string `toml:"commit-msg"`
+		Verbose   bool   `toml:"verbose"`
 	}
 )
 

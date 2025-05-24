@@ -1,3 +1,4 @@
 #:schema ./vrsn.json
+verbose = true
 commit = true
 commit-msg = 'custom commit message'

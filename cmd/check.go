@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/tx3stn/vrsn/internal/config"
 	"github.com/tx3stn/vrsn/internal/files"
 	"github.com/tx3stn/vrsn/internal/flags"
 	"github.com/tx3stn/vrsn/internal/git"
@@ -21,11 +22,19 @@ func NewCmdCheck() *cobra.Command {
 	cmd := &cobra.Command{
 		RunE: func(ccmd *cobra.Command, args []string) error {
 			// TODO: support color option.
-			log := logger.NewBasic(false, flags.Verbose)
+			conf, err := config.Get()
+			if err != nil {
+				return fmt.Errorf("error getting config: %w", err)
+			}
+
+			log := logger.NewBasic(false, conf.Verbose)
 			curDir, err := os.Getwd()
 			if err != nil {
 				return fmt.Errorf("error getting current working directory: %w", err)
 			}
+
+			log.Debugf("config: %+v", conf)
+			log.Debugf("check command args: %s", args)
 
 			if flags.Was != "" && flags.Now != "" {
 				return validateAndCompare(log, flags.Was, flags.Now)

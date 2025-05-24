@@ -44,8 +44,15 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.AddCommand(NewCmdCheck())
 	rootCmd.AddCommand(NewCmdBump())
+
 	rootCmd.PersistentFlags().
-		BoolVar(&flags.Verbose, "verbose", false, "display verbose output for more detail on what the command is doing")
+		Bool("verbose", false, "display verbose output for more detail on what the command is doing")
+
+	if err := viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose")); err != nil {
+		fmt.Printf("error binding --verbose flag: %s", err)
+		os.Exit(1)
+	}
+
 	rootCmd.PersistentFlags().
 		StringVar(&flags.VersionFile, "file", "", "specify the path to the version file (if not in current directory)")
 

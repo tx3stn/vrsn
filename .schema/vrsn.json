@@ -5,6 +5,10 @@
 	"description": "configuration file to set default options for vrsn commands.",
 	"type": "object",
 	"properties": {
+		"verbose": {
+			"description": "If you want to show verbose output when running vrsn commands.",
+			"type": "boolean"
+		},
 		"commit": {
 			"description": "If the bump command should automatically commit the edited version file.",
 			"type": "boolean"
@@ -15,7 +19,9 @@
 		}
 	},
 	"required": [
+		"verbose",
 		"commit",
 		"commit-msg"
-	]
+	],
+	"additionalProperties": false
 }
