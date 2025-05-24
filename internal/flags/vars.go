@@ -2,9 +2,6 @@
 package flags
 
 var (
-	// BaseBranch is the variable for the CLI flag `--base-branch` so you can set
-	// your git base branch if it's anything other than `main`.
-	BaseBranch string
 	// ConfigFile is the variable for the CLI flag `--config` used to specify a config
 	// file not stored in the default location.
 	ConfigFile string

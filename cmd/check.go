@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.com/tx3stn/vrsn/internal/config"
 	"github.com/tx3stn/vrsn/internal/files"
 	"github.com/tx3stn/vrsn/internal/flags"
@@ -81,21 +82,25 @@ func NewCmdCheck() *cobra.Command {
 					return ErrNoWasOrFile
 				}
 
-				if currentBranch == flags.BaseBranch {
+				if currentBranch == conf.Check.BaseBranch {
 					return fmt.Errorf(
 						"%w: base branch: %s",
 						ErrCantCompareVersionsOnBranch,
-						flags.BaseBranch,
+						conf.Check.BaseBranch,
 					)
 				}
 
 				log.Debugf(
 					"reading previous version from %s on branch %s",
 					versionFile,
-					flags.BaseBranch,
+					conf.Check.BaseBranch,
 				)
 
-				baseBranchVersion, err := git.VersionAtBranch(curDir, flags.BaseBranch, versionFile)
+				baseBranchVersion, err := git.VersionAtBranch(
+					curDir,
+					conf.Check.BaseBranch,
+					versionFile,
+				)
 				if err != nil {
 					return fmt.Errorf("error getting version at branch: %w", err)
 				}
@@ -128,12 +133,17 @@ read them from A N Y W H E R E.
 		Use:           "check",
 	}
 	cmd.Flags().
-		StringVar(
-			&flags.BaseBranch,
+		String(
 			"base-branch",
 			"main",
 			"Name of the base branch used when auto detecting version changes.",
 		)
+
+	if err := viper.BindPFlag("base-branch", cmd.Flags().Lookup("base-branch")); err != nil {
+		fmt.Printf("error binding --base-branch flag: %s", err)
+		os.Exit(1)
+	}
+
 	cmd.Flags().
 		StringVar(&flags.Was, "was", "", "The previous semantic version (if passing for direct comparison).")
 	cmd.PersistentFlags().
