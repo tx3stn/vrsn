@@ -1,3 +1,3 @@
-#:schema https://raw.githubusercontent.com/tx3stn/vrsn/refs/heads/main/.schema/vrsn.json
+#:schema ./vrsn.json
 commit = true
 commit-msg = 'custom commit message'
