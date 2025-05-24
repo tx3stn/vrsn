@@ -19,3 +19,4 @@ RUN ${VERSION_PROJECT}/init-project-vf.sh && \
 	${TAG_PROJECT}/init-project-tag.sh
 
 COPY vrsn /usr/bin/vrsn
+ENTRYPOINT [ "sh" ]
