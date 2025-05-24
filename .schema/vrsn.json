@@ -36,11 +36,25 @@
 				"tag-msg"
 			],
 			"additionalProperties": false
+		},
+		"check": {
+			"type": "object",
+			"properties": {
+				"base-branch": {
+					"description": "The name of the base branch if it's anything other than main.",
+					"type": "string"
+				}
+			},
+			"required": [
+				"base-branch"
+			],
+			"additionalProperties": false
 		}
 	},
 	"required": [
 		"verbose",
-		"bump"
+		"bump",
+		"check"
 	],
 	"additionalProperties": false
 }

@@ -6,3 +6,6 @@ commit = true
 commit-msg = 'custom commit message'
 git-tag = false
 tag-msg = 'custom git tag message'
+
+[check]
+base-branch = 'something-other-than-main'
