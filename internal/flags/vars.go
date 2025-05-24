@@ -5,12 +5,6 @@ var (
 	// BaseBranch is the variable for the CLI flag `--base-branch` so you can set
 	// your git base branch if it's anything other than `main`.
 	BaseBranch string
-	// Commit is the variable for the CLI flag `--commit` used to tell the `bump`
-	// command to commit the version file after bumping.
-	Commit bool
-	// CommitMsg is the variable for the CLI flag `--commit-msg` used when
-	// committing version file changes with the `bump` command.
-	CommitMsg string
 	// ConfigFile is the variable for the CLI flag `--config` used to specify a config
 	// file not stored in the default location.
 	ConfigFile string
