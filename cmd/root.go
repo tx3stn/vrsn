@@ -66,17 +66,19 @@ func init() {
 }
 
 func initConfig() {
-	if flags.ConfigFile == "" {
-		viper.SetConfigName("vrsn")
-		viper.SetConfigType("toml")
-		viper.AddConfigPath("$XDG_CONFIG_DIR/")
-		viper.AddConfigPath("$HOME/.config")
-	} else {
+	if flags.ConfigFile != "" {
 		viper.SetConfigFile(flags.ConfigFile)
+
+		if err := viper.ReadInConfig(); err != nil {
+			fmt.Printf("error trying to read config file: %s", err)
+			os.Exit(1)
+		}
+
+		return
 	}
 
-	if err := viper.ReadInConfig(); err != nil {
-		fmt.Printf("error trying to read config file: %s", err)
-		os.Exit(1)
-	}
+	viper.SetConfigName("vrsn")
+	viper.SetConfigType("toml")
+	viper.AddConfigPath("$XDG_CONFIG_DIR/")
+	viper.AddConfigPath("$HOME/.config")
 }
