@@ -44,8 +44,15 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.AddCommand(NewCmdCheck())
 	rootCmd.AddCommand(NewCmdBump())
+
 	rootCmd.PersistentFlags().
-		BoolVar(&flags.Verbose, "verbose", false, "display verbose output for more detail on what the command is doing")
+		Bool("verbose", false, "display verbose output for more detail on what the command is doing")
+
+	if err := viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose")); err != nil {
+		fmt.Printf("error binding --verbose flag: %s", err)
+		os.Exit(1)
+	}
+
 	rootCmd.PersistentFlags().
 		StringVar(&flags.VersionFile, "file", "", "specify the path to the version file (if not in current directory)")
 
@@ -59,17 +66,16 @@ func init() {
 }
 
 func initConfig() {
-	if flags.ConfigFile == "" {
+	if flags.ConfigFile != "" {
+		viper.SetConfigFile(flags.ConfigFile)
+	} else {
 		viper.SetConfigName("vrsn")
 		viper.SetConfigType("toml")
 		viper.AddConfigPath("$XDG_CONFIG_DIR/")
 		viper.AddConfigPath("$HOME/.config")
-	} else {
-		viper.SetConfigFile(flags.ConfigFile)
 	}
 
 	if err := viper.ReadInConfig(); err != nil {
-		fmt.Printf("error trying to read config file: %s", err)
-		os.Exit(1)
+		fmt.Printf("using config file: %s", viper.ConfigFileUsed())
 	}
 }

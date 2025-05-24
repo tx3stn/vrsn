@@ -5,17 +5,56 @@
 	"description": "configuration file to set default options for vrsn commands.",
 	"type": "object",
 	"properties": {
-		"commit": {
-			"description": "If the bump command should automatically commit the edited version file.",
+		"verbose": {
+			"description": "If you want to show verbose output when running vrsn commands.",
 			"type": "boolean"
 		},
-		"commit-msg": {
-			"description": "The commit message to use when the bump command commits the version file.",
-			"type": "string"
+		"bump": {
+			"type": "object",
+			"properties": {
+				"commit": {
+					"description": "If the bump command should automatically commit the edited version file.",
+					"type": "boolean"
+				},
+				"commit-msg": {
+					"description": "The commit message to use when the bump command commits the version file.",
+					"type": "string"
+				},
+				"git-tag": {
+					"description": "If the bump command should use git tags rather than a version file.",
+					"type": "boolean"
+				},
+				"tag-msg": {
+					"description": "The message to use when adding the git tag.",
+					"type": "string"
+				}
+			},
+			"required": [
+				"commit",
+				"commit-msg",
+				"git-tag",
+				"tag-msg"
+			],
+			"additionalProperties": false
+		},
+		"check": {
+			"type": "object",
+			"properties": {
+				"base-branch": {
+					"description": "The name of the base branch if it's anything other than main.",
+					"type": "string"
+				}
+			},
+			"required": [
+				"base-branch"
+			],
+			"additionalProperties": false
 		}
 	},
 	"required": [
-		"commit",
-		"commit-msg"
-	]
+		"verbose",
+		"bump",
+		"check"
+	],
+	"additionalProperties": false
 }

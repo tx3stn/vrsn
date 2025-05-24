@@ -12,7 +12,7 @@ define circleci-docker
 endef
 
 define taplo-docker
-	docker run --rm -v "${PWD}":/repo tamasfe/taplo:0.10.0 
+	docker run --rm -v "${PWD}":/repo -it tamasfe/taplo:0.10.0
 endef
 
 .PHONY: build
@@ -50,7 +50,7 @@ validate-orb:
 
 .PHONY: validate-example-config
 validate-example-config:
-	@$(taplo-docker) --verbose lint /repo/.schema/vrsn.toml
+	@$(taplo-docker) --verbose --colors always lint /repo/.schema/vrsn.toml
 
 .PHONY: validate-schema
 validate-schema:

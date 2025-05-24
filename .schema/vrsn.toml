@@ -1,3 +1,11 @@
-#:schema https://github.com/tx3stn/vrsn/blob/main/.schema/vrsn.json
+#:schema ./vrsn.json
+verbose = true
+
+[bump]
 commit = true
 commit-msg = 'custom commit message'
+git-tag = false
+tag-msg = 'custom git tag message'
+
+[check]
+base-branch = 'something-other-than-main'

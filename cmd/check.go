@@ -5,6 +5,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"github.com/tx3stn/vrsn/internal/config"
 	"github.com/tx3stn/vrsn/internal/files"
 	"github.com/tx3stn/vrsn/internal/flags"
 	"github.com/tx3stn/vrsn/internal/git"
@@ -21,11 +23,19 @@ func NewCmdCheck() *cobra.Command {
 	cmd := &cobra.Command{
 		RunE: func(ccmd *cobra.Command, args []string) error {
 			// TODO: support color option.
-			log := logger.NewBasic(false, flags.Verbose)
+			conf, err := config.Get()
+			if err != nil {
+				return fmt.Errorf("error getting config: %w", err)
+			}
+
+			log := logger.NewBasic(false, conf.Verbose)
 			curDir, err := os.Getwd()
 			if err != nil {
 				return fmt.Errorf("error getting current working directory: %w", err)
 			}
+
+			log.Debugf("config: %+v", conf)
+			log.Debugf("check command args: %s", args)
 
 			if flags.Was != "" && flags.Now != "" {
 				return validateAndCompare(log, flags.Was, flags.Now)
@@ -72,21 +82,25 @@ func NewCmdCheck() *cobra.Command {
 					return ErrNoWasOrFile
 				}
 
-				if currentBranch == flags.BaseBranch {
+				if currentBranch == conf.Check.BaseBranch {
 					return fmt.Errorf(
 						"%w: base branch: %s",
 						ErrCantCompareVersionsOnBranch,
-						flags.BaseBranch,
+						conf.Check.BaseBranch,
 					)
 				}
 
 				log.Debugf(
 					"reading previous version from %s on branch %s",
 					versionFile,
-					flags.BaseBranch,
+					conf.Check.BaseBranch,
 				)
 
-				baseBranchVersion, err := git.VersionAtBranch(curDir, flags.BaseBranch, versionFile)
+				baseBranchVersion, err := git.VersionAtBranch(
+					curDir,
+					conf.Check.BaseBranch,
+					versionFile,
+				)
 				if err != nil {
 					return fmt.Errorf("error getting version at branch: %w", err)
 				}
@@ -119,12 +133,17 @@ read them from A N Y W H E R E.
 		Use:           "check",
 	}
 	cmd.Flags().
-		StringVar(
-			&flags.BaseBranch,
+		String(
 			"base-branch",
 			"main",
 			"Name of the base branch used when auto detecting version changes.",
 		)
+
+	if err := viper.BindPFlag("base-branch", cmd.Flags().Lookup("base-branch")); err != nil {
+		fmt.Printf("error binding --base-branch flag: %s", err)
+		os.Exit(1)
+	}
+
 	cmd.Flags().
 		StringVar(&flags.Was, "was", "", "The previous semantic version (if passing for direct comparison).")
 	cmd.PersistentFlags().

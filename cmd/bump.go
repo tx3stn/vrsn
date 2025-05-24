@@ -26,23 +26,22 @@ func NewCmdBump() *cobra.Command {
 		Args: cobra.OnlyValidArgs,
 		RunE: func(ccmd *cobra.Command, args []string) error {
 			// TODO: support color option.
-			log := logger.NewBasic(false, flags.Verbose)
-			curDir, err := os.Getwd()
-			if err != nil {
-				return fmt.Errorf("error getting current working directory: %w", err)
-			}
-
 			conf, err := config.Get()
 			if err != nil {
 				return fmt.Errorf("error getting config: %w", err)
 			}
 
-			log.Debugf("config: %+v", conf)
+			log := logger.NewBasic(false, conf.Verbose)
+			curDir, err := os.Getwd()
+			if err != nil {
+				return fmt.Errorf("error getting current working directory: %w", err)
+			}
 
+			log.Debugf("config: %+v", conf)
 			log.Debugf("bump command args: %s", args)
 
-			if flags.GitTag {
-				return bumpGitTag(curDir, args, log)
+			if conf.Bump.GitTag {
+				return bumpGitTag(curDir, args, log, conf.Bump.TagMsg)
 			}
 
 			versionFileFinder := files.VersionFileFinder{
@@ -72,7 +71,7 @@ func NewCmdBump() *cobra.Command {
 
 			log.Infof("version bumped from %s to %s", currentVersion, newVersion)
 
-			if conf.Commit {
+			if conf.Bump.Commit {
 				addOutput, err := git.Add(curDir, versionFile)
 				if err != nil {
 					log.Infof("git add output: %s", addOutput)
@@ -80,7 +79,7 @@ func NewCmdBump() *cobra.Command {
 					return fmt.Errorf("error git adding files: %w", err)
 				}
 
-				commitOutput, err := git.Commit(curDir, versionFile, conf.CommitMsg)
+				commitOutput, err := git.Commit(curDir, versionFile, conf.Bump.CommitMsg)
 				if err != nil {
 					log.Infof("git commit output: %s", commitOutput)
 
@@ -111,7 +110,7 @@ The semantic version in the version file will be updated in place.`, shortDescri
 	cmd.Flags().Bool("commit", false, "Commit the updated version file after bumping.")
 
 	if err := viper.BindPFlag("commit", cmd.Flags().Lookup("commit")); err != nil {
-		fmt.Printf("error binding commit flag: %s", err)
+		fmt.Printf("error binding --commit flag: %s", err)
 		os.Exit(1)
 	}
 
@@ -123,19 +122,25 @@ The semantic version in the version file will be updated in place.`, shortDescri
 		)
 
 	if err := viper.BindPFlag("commit-msg", cmd.Flags().Lookup("commit-msg")); err != nil {
-		fmt.Printf("error binding commit-msg flag: %s", err)
+		fmt.Printf("error binding --commit-msg flag: %s", err)
 		os.Exit(1)
 	}
 
 	cmd.Flags().
-		BoolVar(&flags.GitTag, "git-tag", false, "Use git tags rather than a version file.")
+		Bool("git-tag", false, "Use git tags rather than a version file.")
+
+	if err := viper.BindPFlag("git-tag", cmd.Flags().Lookup("git-tag")); err != nil {
+		fmt.Printf("error binding --git-tag flag: %s", err)
+		os.Exit(1)
+	}
+
 	cmd.Flags().
-		StringVar(
-			&flags.TagMsg,
-			"tag-msg",
-			"",
-			"Customise the tag message used when adding the version tag.",
-		)
+		String("tag-msg", "", "Customise the tag message used when adding the version tag.")
+
+	if err := viper.BindPFlag("tag-msg", cmd.Flags().Lookup("tag-msg")); err != nil {
+		fmt.Printf("error binding --tag-msg flag: %s", err)
+		os.Exit(1)
+	}
 
 	return cmd
 }
@@ -167,7 +172,7 @@ func getNewVersion(currentVersion string, args []string) (string, error) {
 	return newVersion, nil
 }
 
-func bumpGitTag(curDir string, args []string, log logger.Basic) error {
+func bumpGitTag(curDir string, args []string, log logger.Basic, tagMsg string) error {
 	currentVersion, err := git.LatestTag(curDir)
 	if err != nil {
 		return fmt.Errorf("error getting latest tag: %w", err)
@@ -180,11 +185,11 @@ func bumpGitTag(curDir string, args []string, log logger.Basic) error {
 		return err
 	}
 
-	if flags.TagMsg == "" {
-		flags.TagMsg = "Release " + newVersion
+	if tagMsg == "" {
+		tagMsg = "Release " + newVersion
 	}
 
-	if err := git.AddTag(curDir, newVersion, flags.TagMsg); err != nil {
+	if err := git.AddTag(curDir, newVersion, tagMsg); err != nil {
 		return fmt.Errorf("error adding tag: %w", err)
 	}
 

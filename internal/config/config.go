@@ -11,8 +11,22 @@ import (
 type (
 	// Config represents the options available in the config file.
 	Config struct {
+		Bump    BumpOpts  `toml:"bump"`
+		Check   CheckOpts `toml:"check"`
+		Verbose bool      `toml:"verbose"`
+	}
+
+	// BumpOpts are the vrsn bump specific options in the config file.
+	BumpOpts struct {
 		Commit    bool   `toml:"commit"`
 		CommitMsg string `toml:"commit-msg"`
+		GitTag    bool   `toml:"git-tag"`
+		TagMsg    string `toml:"tag-msg"`
+	}
+
+	// CheckOpts are the vrsn check specific options in the config file.
+	CheckOpts struct {
+		BaseBranch string `toml:"base-branch"`
 	}
 )
 
@@ -30,5 +44,17 @@ func Get() (Config, error) {
 		return Config{}, fmt.Errorf("error unmarshalling config file: %w", err)
 	}
 
+	parsedConfig.setDefaults()
+
 	return parsedConfig, nil
+}
+
+func (c *Config) setDefaults() {
+	if c.Check.BaseBranch == "" {
+		c.Check.BaseBranch = "main"
+	}
+
+	if c.Bump.CommitMsg == "" {
+		c.Bump.CommitMsg = "bump version"
+	}
 }
