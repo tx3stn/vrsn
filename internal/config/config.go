@@ -44,5 +44,17 @@ func Get() (Config, error) {
 		return Config{}, fmt.Errorf("error unmarshalling config file: %w", err)
 	}
 
+	parsedConfig.setDefaults()
+
 	return parsedConfig, nil
+}
+
+func (c *Config) setDefaults() {
+	if c.Check.BaseBranch == "" {
+		c.Check.BaseBranch = "main"
+	}
+
+	if c.Bump.CommitMsg == "" {
+		c.Bump.CommitMsg = "bump version"
+	}
 }
