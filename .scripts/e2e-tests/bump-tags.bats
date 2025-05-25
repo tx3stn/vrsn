@@ -25,6 +25,7 @@ setup() {
 	bats_load_library bats-support
 	bats_load_library bats-assert
 	cd "$test_dir" || exit 1
+	git tag -a "0.0.1" -m "Release 0.0.1" -f
 }
 
 teardown() {
@@ -46,4 +47,20 @@ teardown() {
 
 	new=$(git --no-pager tag --list --points-at HEAD)
 	assert_equal "0.0.2" "$new"
+}
+
+@test "vrsn bump w. git tags: --tag-msg" {
+	git checkout -b "$test_branch"
+	echo "update" >>README.md
+	git add README.md
+	git commit -m "update"
+
+	tag_msg='custom tag message'
+	run vrsn bump patch --git-tag --tag-msg="$tag_msg"
+	assert_success
+	assert_line --index 0 'git tag version bumped from 0.0.1 to 0.0.2'
+
+	run git --no-pager tag --list --points-at HEAD -n1
+	assert_success
+	assert_line --index 0 --partial "$tag_msg"
 }
