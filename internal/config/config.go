@@ -32,9 +32,7 @@ type (
 
 // Get returns the config.
 func Get() (Config, error) {
-	if err := viper.ReadInConfig(); err != nil {
-		fmt.Println("no config file found")
-	}
+	fileNotFoundErr := viper.ReadInConfig()
 
 	conf := viper.AllSettings()
 
@@ -46,6 +44,10 @@ func Get() (Config, error) {
 	parsedConfig := Config{}
 	if err := toml.Unmarshal(tomlContent, &parsedConfig); err != nil {
 		return Config{}, fmt.Errorf("error unmarshalling config file: %w", err)
+	}
+
+	if parsedConfig.Verbose && fileNotFoundErr != nil {
+		fmt.Println("no config file found")
 	}
 
 	parsedConfig.setDefaults()
