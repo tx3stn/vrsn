@@ -40,6 +40,10 @@ lint:
 test:
 	@CGO_ENABLED=1 go test ${DIR} -race -cover
 
+.PHONY: test-e2e
+test-e2e:
+	@docker build . -f .docker/bats-tests.Dockerfile -t vrsn/e2e-tests:local
+
 .PHONY: validate-ci
 validate-ci:
 	@$(circleci-docker) config validate /repo/config.yml

@@ -1,11 +1,9 @@
 #!/usr/bin/sh
 
-# script to provision integration test git repo using a version file.
-cd /project-tag || exit
+# script to provision e2e test git repo using git tags.
+git config --global --add safe.directory "$1"
+cd "$1" || exit
 
-git config --global init.defaultBranch "main"
-git config --global user.email "int-tests@vrsn.com"
-git config --global user.name "integration tests"
 git init
 echo "# example" >README.md
 git add README.md
