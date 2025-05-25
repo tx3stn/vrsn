@@ -20,7 +20,7 @@ teardown_file() {
 }
 
 setup() {
-	echo "test setup..."
+	echo "### test setup ###"
 	bats_load_library bats-support
 	bats_load_library bats-assert
 	cd "$test_dir" || exit 1
@@ -58,5 +58,19 @@ teardown() {
 	assert_failure
 	assert_line --index 0 'was: 0.0.1'
 	assert_line --index 1 'now: 0.2.0'
+	assert_line --index 2 --partial 'invalid version bump'
+}
+
+@test "vrsn check w. VERSION file: --base-branch" {
+	git checkout -b "$test_branch"
+	echo "0.1.0" >VERSION
+	git add VERSION
+	git commit -m "bump version"
+
+	git checkout "$main_branch"
+	run vrsn check --base-branch "$test_branch"
+	assert_failure
+	assert_line --index 0 'was: 0.1.0'
+	assert_line --index 1 'now: 0.0.1'
 	assert_line --index 2 --partial 'invalid version bump'
 }
