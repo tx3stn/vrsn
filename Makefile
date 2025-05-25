@@ -43,6 +43,7 @@ test:
 .PHONY: test-e2e
 test-e2e:
 	@docker build . -f .docker/bats-tests.Dockerfile -t vrsn/e2e-tests:local
+	@docker run --rm -it -v ${PWD}/.scripts:/code vrsn/e2e-tests:local bats --verbose-run /code/e2e-tests
 
 .PHONY: validate-ci
 validate-ci:

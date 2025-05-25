@@ -23,4 +23,4 @@ RUN sh ${SCRIPTS_DIR}/init-git.sh && \
 
 COPY vrsn /usr/bin/vrsn
 
-ENTRYPOINT [ "sh" ]
+ENTRYPOINT [ "bash" ]
