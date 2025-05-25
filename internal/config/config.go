@@ -32,6 +32,10 @@ type (
 
 // Get returns the config.
 func Get() (Config, error) {
+	if err := viper.ReadInConfig(); err != nil {
+		fmt.Println("no config file found")
+	}
+
 	conf := viper.AllSettings()
 
 	tomlContent, err := toml.Marshal(conf)
@@ -50,9 +54,6 @@ func Get() (Config, error) {
 }
 
 func (c *Config) setDefaults() {
-	c.Bump.Commit = viper.GetBool("commit")
-	c.Bump.CommitMsg = viper.GetString("commit-msg")
-
 	if c.Check.BaseBranch == "" {
 		c.Check.BaseBranch = "main"
 	}
