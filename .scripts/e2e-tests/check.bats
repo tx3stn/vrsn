@@ -4,21 +4,32 @@
 
 main_branch='main'
 test_branch='bats-tests'
+test_dir='/project-vf'
+
+setup_file() {
+	echo "### suite setup ###"
+	load ./setup-git.sh
+	configure-git "$main_branch"
+
+	load ./setup-git-repo.sh
+	setup-git-repo-with-version-file "$test_dir"
+}
+
+teardown_file() {
+	rm -rf "$test_dir"
+}
 
 setup() {
 	echo "test setup..."
 	bats_load_library bats-support
 	bats_load_library bats-assert
-	cd /project-vf || exit 1
+	cd "$test_dir" || exit 1
 }
 
 teardown() {
-	echo "test teardown..."
-	git add .
-	git stash
-	git stash drop
-	git checkout "$main_branch"
-	git branch -D "$test_branch"
+	echo "### test teardown ###"
+	load ./teardown-git.sh
+	tidy-git-changes "$main_branch" "$test_branch"
 }
 
 @test "vrsn check w. VERSION file: no bump" {
