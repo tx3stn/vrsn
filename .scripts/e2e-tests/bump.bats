@@ -16,6 +16,7 @@ setup_file() {
 }
 
 teardown_file() {
+	echo "### suite teardown ###"
 	rm -rf "$test_dir"
 }
 

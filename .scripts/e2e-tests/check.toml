@@ -1,0 +1,10 @@
+verbose = false
+
+[bump]
+commit = false
+commit-msg = ''
+git-tag = false
+tag-msg = ''
+
+[check]
+base-branch = 'bats-tests'
