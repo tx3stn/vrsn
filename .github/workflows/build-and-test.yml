@@ -21,3 +21,12 @@ jobs:
         run: make build
       - name: test
         run: ./.scripts/run-tests-with-summary.sh > "$GITHUB_STEP_SUMMARY"
+      - uses: bats-core/bats-action@3.0.0
+        name: setup bats
+        id: setup-bats
+      - name: end to end tests
+        shell: bash
+        env:
+          BATS_LIB_PATH: ${{ steps.setup-bats.outputs.lib-path }}
+          TERM: xterm
+        run: bats --verbose-run .scripts/e2e-tests/
