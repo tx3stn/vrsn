@@ -64,3 +64,19 @@ teardown() {
 	assert_success
 	assert_line --index 0 --partial "$tag_msg"
 }
+
+@test "vrsn bump w. git tags: in config file" {
+	git checkout -b "$test_branch"
+	echo "update" >>README.md
+	git add README.md
+	git commit -m "update"
+
+	cfg_file="$BATS_TEST_DIRNAME/tag.toml"
+	run vrsn bump major --config="$cfg_file"
+	assert_success
+	assert_line --index 0 'git tag version bumped from 0.0.1 to 1.0.0'
+
+	run git --no-pager tag --list --points-at HEAD -n1
+	assert_success
+	assert_line --index 0 --partial 'custom tag message'
+}
