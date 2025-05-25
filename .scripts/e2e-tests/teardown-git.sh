@@ -9,3 +9,7 @@ tidy-git-changes() {
 		git branch -D "$2"
 	fi
 }
+
+delete-tags() {
+	git --no-pager tag -d $(git --no-pager tag -l)
+}
