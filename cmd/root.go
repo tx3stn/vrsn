@@ -74,8 +74,4 @@ func initConfig() {
 		viper.AddConfigPath("$XDG_CONFIG_DIR/")
 		viper.AddConfigPath("$HOME/.config")
 	}
-
-	if err := viper.ReadInConfig(); err != nil {
-		fmt.Printf("using config file: %s", viper.ConfigFileUsed())
-	}
 }
