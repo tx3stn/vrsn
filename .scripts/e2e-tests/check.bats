@@ -4,7 +4,7 @@
 
 main_branch='main'
 test_branch='bats-tests'
-test_dir='/project-vf'
+test_dir='/tmp/project-vf'
 
 setup_file() {
 	echo "### suite setup ###"
