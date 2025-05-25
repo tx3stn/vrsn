@@ -31,4 +31,4 @@ jobs:
           TERM: xterm
         run: |
           echo "\n##end to end tests\n" > "$GITHUB_STEP_SUMMARY"
-          bats --verbose-run --formatter pretty .scripts/e2e-tests/ > "$GITHUB_STEP_SUMMARY"
+          bats --verbose-run --formatter tap .scripts/e2e-tests/ > "$GITHUB_STEP_SUMMARY"
