@@ -29,6 +29,4 @@ jobs:
         env:
           BATS_LIB_PATH: ${{ steps.setup-bats.outputs.lib-path }}
           TERM: xterm
-        run: |
-          echo "\n##end to end tests\n" > "$GITHUB_STEP_SUMMARY"
-          bats --verbose-run --formatter tap .scripts/e2e-tests/ > "$GITHUB_STEP_SUMMARY"
+        run: ./.scripts/run-e2e-tests-with-summary.sh > "$GITHUB_STEP_SUMMARY"
