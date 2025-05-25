@@ -3,5 +3,13 @@ tidy-git-changes() {
 	git stash
 	git stash drop
 	git checkout "$1"
-	git branch -D "$2"
+
+	branches=$(git --no-pager branch --list "$2")
+	if [ "$branches" != "" ]; then
+		git branch -D "$2"
+	fi
+}
+
+delete-tags() {
+	git --no-pager tag -d $(git --no-pager tag -l)
 }
