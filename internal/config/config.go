@@ -50,6 +50,9 @@ func Get() (Config, error) {
 }
 
 func (c *Config) setDefaults() {
+	c.Bump.Commit = viper.GetBool("commit")
+	c.Bump.CommitMsg = viper.GetString("commit-msg")
+
 	if c.Check.BaseBranch == "" {
 		c.Check.BaseBranch = "main"
 	}
