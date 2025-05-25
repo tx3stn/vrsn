@@ -70,6 +70,7 @@ func (c *Config) setDefaults(useConfigFile bool) {
 	if !useConfigFile {
 		c.Bump.Commit = viper.GetBool("commit")
 		c.Bump.CommitMsg = viper.GetString("commit-msg")
+		c.Check.BaseBranch = viper.GetString("base-branch")
 	}
 
 	if c.Check.BaseBranch == "" {
