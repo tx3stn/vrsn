@@ -1,8 +1,8 @@
 verbose = false
 
 [bump]
-commit = false
-commit-msg = ''
+commit = true
+commit-msg = 'testing commit'
 git-tag = false
 tag-msg = ''
 
