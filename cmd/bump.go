@@ -193,7 +193,7 @@ func bumpGitTag(curDir string, args []string, log logger.Basic, tagMsg string) e
 		return fmt.Errorf("error adding tag: %w", err)
 	}
 
-	log.Debugf("new git tag added: %s", newVersion)
+	log.Infof("git tag version bumped from %s to %s", currentVersion, newVersion)
 
 	return nil
 }
