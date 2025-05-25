@@ -19,8 +19,8 @@ jobs:
           cache: true
       - name: build binary
         run: make install
-      - name: test
-        run: ./.scripts/run-tests-with-summary.sh > "$GITHUB_STEP_SUMMARY"
+      - name: unit tests
+        run: ./.scripts/run-unit-tests-with-summary.sh > "$GITHUB_STEP_SUMMARY"
       - uses: bats-core/bats-action@3.0.0
         name: setup bats
         id: setup-bats
@@ -29,4 +29,6 @@ jobs:
         env:
           BATS_LIB_PATH: ${{ steps.setup-bats.outputs.lib-path }}
           TERM: xterm
-        run: bats --verbose-run .scripts/e2e-tests/
+        run: |
+          echo "\n##end to end tests\n" > "$GITHUB_STEP_SUMMARY"
+          bats --verbose-run --formatter pretty .scripts/e2e-tests/ > "$GITHUB_STEP_SUMMARY"
