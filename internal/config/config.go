@@ -32,7 +32,22 @@ type (
 
 // Get returns the config.
 func Get() (Config, error) {
-	fileNotFoundErr := viper.ReadInConfig()
+	usingConfigFile := true
+
+	if err := viper.ReadInConfig(); err != nil {
+		//nolint:errorlint
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			// Config file not found; ignore error if desired
+			usingConfigFile = false
+
+			if viper.GetBool("verbose") {
+				fmt.Println("no config file found")
+			}
+		} else {
+			// Config file was found but another error was produced
+			return Config{}, fmt.Errorf("error reading config file: %w", err)
+		}
+	}
 
 	conf := viper.AllSettings()
 
@@ -46,16 +61,17 @@ func Get() (Config, error) {
 		return Config{}, fmt.Errorf("error unmarshalling config file: %w", err)
 	}
 
-	if parsedConfig.Verbose && fileNotFoundErr != nil {
-		fmt.Println("no config file found")
-	}
-
-	parsedConfig.setDefaults()
+	parsedConfig.setDefaults(usingConfigFile)
 
 	return parsedConfig, nil
 }
 
-func (c *Config) setDefaults() {
+func (c *Config) setDefaults(useConfigFile bool) {
+	if !useConfigFile {
+		c.Bump.Commit = viper.GetBool("commit")
+		c.Bump.CommitMsg = viper.GetString("commit-msg")
+	}
+
 	if c.Check.BaseBranch == "" {
 		c.Check.BaseBranch = "main"
 	}
