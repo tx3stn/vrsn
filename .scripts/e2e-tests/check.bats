@@ -16,6 +16,7 @@ setup_file() {
 }
 
 teardown_file() {
+	echo "### suite teardown ###"
 	rm -rf "$test_dir"
 }
 
@@ -73,4 +74,12 @@ teardown() {
 	assert_line --index 0 'was: 0.1.0'
 	assert_line --index 1 'now: 0.0.1'
 	assert_line --index 2 --partial 'invalid version bump'
+}
+
+@test "vrsn check w. --was & --now flags" {
+	run vrsn check --was 9.0.0 --now 10.0.0
+	assert_success
+	assert_line --index 0 'was: 9.0.0'
+	assert_line --index 1 'now: 10.0.0'
+	assert_line --index 2 'valid version bump'
 }
