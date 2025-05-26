@@ -88,8 +88,7 @@ func (c *Config) setDefaults(useConfigFile bool) {
 
 // FindConfigFile checks the expected paths for a vrsn config file and returns the
 // path to it if found.
-// The paths are checked in the order of prescidence:
-//   - current directory
+// The paths are checked in the order of precedence:
 //   - XDG_CONFIG_DIR
 //   - HOME/.config
 func FindConfigFile() (string, error) {
