@@ -3,6 +3,8 @@ package config
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/pelletier/go-toml/v2"
 	"github.com/spf13/viper"
@@ -82,4 +84,40 @@ func (c *Config) setDefaults(useConfigFile bool) {
 	if c.Bump.CommitMsg == "" {
 		c.Bump.CommitMsg = "bump version"
 	}
+}
+
+// FindConfigFile checks the expected paths for a vrsn config file and returns the
+// path to it if found.
+// The paths are checked in the order of prescidence:
+//   - current directory
+//   - XDG_CONFIG_DIR
+//   - HOME/.config
+func FindConfigFile() (string, error) {
+	paths := []string{}
+
+	if xdg, ok := os.LookupEnv("XDG_CONFIG_DIR"); ok {
+		paths = append(paths, xdg)
+	}
+
+	if home, ok := os.LookupEnv("HOME"); ok {
+		paths = append(paths, filepath.Join(home, ".config"))
+	}
+
+	if len(paths) == 0 {
+		return "", nil
+	}
+
+	configFileName := "vrsn.toml"
+
+	for _, path := range paths {
+		file := filepath.Join(path, configFileName)
+		if _, err := os.Stat(file); os.IsNotExist(err) {
+			// no config file at location, continue looking.
+			continue
+		}
+
+		return file, nil
+	}
+
+	return "", nil
 }
