@@ -6,3 +6,4 @@ TODO.md
 dist/
 .env
 demo.gif
+.mypy_cache/

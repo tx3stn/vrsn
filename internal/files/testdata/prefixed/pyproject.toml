@@ -1,0 +1,7 @@
+[tool.poetry]
+name = "vrsn-unit-test"
+version = "v9.8.123455"
+description = "just for a unit test, why are you reading this"
+authors = ["me"]
+homepage = "https://github.com/tx3stn/vrsn"
+classifiers = ["Private :: Do Not Upload"]
