@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"github.com/tx3stn/vrsn/internal/config"
 	"github.com/tx3stn/vrsn/internal/files"
 	"github.com/tx3stn/vrsn/internal/flags"
@@ -23,7 +22,7 @@ func NewCmdCheck() *cobra.Command {
 	cmd := &cobra.Command{
 		RunE: func(ccmd *cobra.Command, args []string) error {
 			// TODO: support color option.
-			conf, err := config.Get()
+			conf, err := config.Get(flags.ConfigFile)
 			if err != nil {
 				return fmt.Errorf("error getting config: %w", err)
 			}
@@ -133,16 +132,12 @@ read them from A N Y W H E R E.
 		Use:           "check",
 	}
 	cmd.Flags().
-		String(
+		StringVar(
+			&flags.BaseBranch,
 			"base-branch",
 			"main",
 			"Name of the base branch used when auto detecting version changes.",
 		)
-
-	if err := viper.BindPFlag("base-branch", cmd.Flags().Lookup("base-branch")); err != nil {
-		fmt.Printf("error binding --base-branch flag: %s", err)
-		os.Exit(1)
-	}
 
 	cmd.Flags().
 		StringVar(&flags.Was, "was", "", "The previous semantic version (if passing for direct comparison).")

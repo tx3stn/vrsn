@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"github.com/tx3stn/vrsn/internal/config"
 	"github.com/tx3stn/vrsn/internal/files"
 	"github.com/tx3stn/vrsn/internal/flags"
@@ -26,7 +25,7 @@ func NewCmdBump() *cobra.Command {
 		Args: cobra.OnlyValidArgs,
 		RunE: func(ccmd *cobra.Command, args []string) error {
 			// TODO: support color option.
-			conf, err := config.Get()
+			conf, err := config.Get(flags.ConfigFile)
 			if err != nil {
 				return fmt.Errorf("error getting config: %w", err)
 			}
@@ -57,7 +56,7 @@ func NewCmdBump() *cobra.Command {
 
 			currentVersion, err := files.GetVersionFromFile(curDir, versionFile)
 			if err != nil {
-				return fmt.Errorf("errpr getting version from file: %w", err)
+				return fmt.Errorf("error getting version from file: %w", err)
 			}
 
 			newVersion, err := getNewVersion(currentVersion, args)
@@ -107,40 +106,22 @@ The semantic version in the version file will be updated in place.`, shortDescri
 		ValidArgs:     []string{"patch", "major", "minor"},
 	}
 
-	cmd.Flags().Bool("commit", false, "Commit the updated version file after bumping.")
-
-	if err := viper.BindPFlag("commit", cmd.Flags().Lookup("commit")); err != nil {
-		fmt.Printf("error binding --commit flag: %s", err)
-		os.Exit(1)
-	}
+	cmd.Flags().
+		BoolVar(&flags.Commit, "commit", false, "Commit the updated version file after bumping.")
 
 	cmd.Flags().
-		String(
+		StringVar(
+			&flags.CommitMsg,
 			"commit-msg",
 			"bump version",
 			"Customise the commit message used when committing the version bump.",
 		)
 
-	if err := viper.BindPFlag("commit-msg", cmd.Flags().Lookup("commit-msg")); err != nil {
-		fmt.Printf("error binding --commit-msg flag: %s", err)
-		os.Exit(1)
-	}
+	cmd.Flags().
+		BoolVar(&flags.GitTag, "git-tag", false, "Use git tags rather than a version file.")
 
 	cmd.Flags().
-		Bool("git-tag", false, "Use git tags rather than a version file.")
-
-	if err := viper.BindPFlag("git-tag", cmd.Flags().Lookup("git-tag")); err != nil {
-		fmt.Printf("error binding --git-tag flag: %s", err)
-		os.Exit(1)
-	}
-
-	cmd.Flags().
-		String("tag-msg", "", "Customise the tag message used when adding the version tag.")
-
-	if err := viper.BindPFlag("tag-msg", cmd.Flags().Lookup("tag-msg")); err != nil {
-		fmt.Printf("error binding --tag-msg flag: %s", err)
-		os.Exit(1)
-	}
+		StringVar(&flags.TagMsg, "tag-msg", "", "Customise the tag message used when adding the version tag.")
 
 	return cmd
 }

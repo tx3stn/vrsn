@@ -3,9 +3,11 @@ package config
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/pelletier/go-toml/v2"
-	"github.com/spf13/viper"
+	"github.com/tx3stn/vrsn/internal/flags"
 )
 
 type (
@@ -31,55 +33,79 @@ type (
 )
 
 // Get returns the config.
-func Get() (Config, error) {
-	usingConfigFile := true
+func Get(fileFlag string) (Config, error) {
+	var file string
 
-	if err := viper.ReadInConfig(); err != nil {
-		//nolint:errorlint
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			// Config file not found; ignore error if desired
-			usingConfigFile = false
+	var err error
 
-			if viper.GetBool("verbose") {
-				fmt.Println("no config file found")
-			}
-		} else {
-			// Config file was found but another error was produced
-			return Config{}, fmt.Errorf("error reading config file: %w", err)
+	if fileFlag == "" {
+		file, err = FindConfigFile()
+		if err != nil {
+			return Config{}, err
 		}
+	} else {
+		file = fileFlag
 	}
 
-	conf := viper.AllSettings()
+	if file == "" {
+		return Config{
+			Bump: BumpOpts{
+				Commit:    flags.Commit,
+				CommitMsg: flags.CommitMsg,
+				GitTag:    flags.GitTag,
+				TagMsg:    flags.TagMsg,
+			},
+			Check: CheckOpts{
+				BaseBranch: flags.BaseBranch,
+			},
+			Verbose: flags.Verbose,
+		}, nil
+	}
 
-	tomlContent, err := toml.Marshal(conf)
+	content, err := os.ReadFile(filepath.Clean(file))
 	if err != nil {
-		return Config{}, fmt.Errorf("error marshalling config file: %w", err)
+		return Config{}, fmt.Errorf("error reading config file: %w", err)
 	}
 
-	parsedConfig := Config{}
-	if err := toml.Unmarshal(tomlContent, &parsedConfig); err != nil {
-		return Config{}, fmt.Errorf("error unmarshalling config file: %w", err)
+	var conf Config
+	if err = toml.Unmarshal(content, &conf); err != nil {
+		return Config{}, fmt.Errorf("error unmashalling config from file: %w", err)
 	}
 
-	parsedConfig.setDefaults(usingConfigFile)
-
-	return parsedConfig, nil
+	return conf, nil
 }
 
-func (c *Config) setDefaults(useConfigFile bool) {
-	if !useConfigFile {
-		c.Bump.Commit = viper.GetBool("commit")
-		c.Bump.CommitMsg = viper.GetString("commit-msg")
-		c.Bump.GitTag = viper.GetBool("git-tag")
-		c.Bump.TagMsg = viper.GetString("tag-msg")
-		c.Check.BaseBranch = viper.GetString("base-branch")
+// FindConfigFile checks the expected paths for a vrsn config file and returns the
+// path to it if found.
+// The paths are checked in the order of precedence:
+//   - XDG_CONFIG_DIR
+//   - HOME/.config
+func FindConfigFile() (string, error) {
+	paths := []string{}
+
+	if xdg, ok := os.LookupEnv("XDG_CONFIG_DIR"); ok {
+		paths = append(paths, xdg)
 	}
 
-	if c.Check.BaseBranch == "" {
-		c.Check.BaseBranch = "main"
+	if home, ok := os.LookupEnv("HOME"); ok {
+		paths = append(paths, filepath.Join(home, ".config"))
 	}
 
-	if c.Bump.CommitMsg == "" {
-		c.Bump.CommitMsg = "bump version"
+	if len(paths) == 0 {
+		return "", nil
 	}
+
+	configFileName := "vrsn.toml"
+
+	for _, path := range paths {
+		file := filepath.Join(path, configFileName)
+		if _, err := os.Stat(file); os.IsNotExist(err) {
+			// no config file at location, continue looking.
+			continue
+		}
+
+		return file, nil
+	}
+
+	return "", nil
 }
