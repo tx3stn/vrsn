@@ -41,7 +41,7 @@ test:
 	@CGO_ENABLED=1 go test ${DIR} -race -cover
 
 .PHONY: test-e2e
-test-e2e:
+test-e2e: build
 	@docker build . -f .docker/bats-tests.Dockerfile -t vrsn/e2e-tests:local
 	@docker run --rm -it -v ${PWD}/.scripts:/code vrsn/e2e-tests:local bats --verbose-run --formatter pretty /code/e2e-tests
 
