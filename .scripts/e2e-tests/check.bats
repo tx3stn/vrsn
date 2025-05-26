@@ -101,3 +101,19 @@ teardown() {
 	assert_line --index 1 'now: 10.0.0'
 	assert_line --index 2 'valid version bump'
 }
+
+@test "vrsn check w. --file" {
+	file='Cargo.toml'
+	printf '[package]\nversion = "16.8.9"' >"$file"
+	git add "$file"
+	git commit -m "add new file"
+
+	git checkout -b "$test_branch"
+	run vrsn check --file="$file"
+	assert_failure
+	assert_line --index 0 'was: 16.8.9'
+	assert_line --index 1 'now: 16.8.9'
+	assert_line --index 2 --partial 'version has not been bumped'
+
+	rm "$file"
+}
