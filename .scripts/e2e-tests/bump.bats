@@ -56,8 +56,8 @@ teardown() {
 
 @test "vrsn bump w. VERSION file: valid bump --file" {
 	git checkout -b "$test_branch"
-	printf '{\n  "version":"v0.6.32"\n}' >package.json
-	run vrsn bump patch --verbose --file=package.json
+	printf '{"version":"v0.6.32"}' >package.json
+	run vrsn bump patch --file='package.json'
 	assert_success
 	assert_line --index 0 'version bumped from v0.6.32 to v0.6.33'
 
