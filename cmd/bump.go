@@ -25,7 +25,7 @@ func NewCmdBump() *cobra.Command {
 		Args: cobra.OnlyValidArgs,
 		RunE: func(ccmd *cobra.Command, args []string) error {
 			// TODO: support color option.
-			conf, err := config.Get()
+			conf, err := config.Get(flags.ConfigFile)
 			if err != nil {
 				return fmt.Errorf("error getting config: %w", err)
 			}
@@ -56,7 +56,7 @@ func NewCmdBump() *cobra.Command {
 
 			currentVersion, err := files.GetVersionFromFile(curDir, versionFile)
 			if err != nil {
-				return fmt.Errorf("errpr getting version from file: %w", err)
+				return fmt.Errorf("error getting version from file: %w", err)
 			}
 
 			newVersion, err := getNewVersion(currentVersion, args)

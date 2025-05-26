@@ -33,10 +33,17 @@ type (
 )
 
 // Get returns the config.
-func Get() (Config, error) {
-	file, err := FindConfigFile()
-	if err != nil {
-		return Config{}, err
+func Get(fileFlag string) (Config, error) {
+	var file string
+	var err error
+
+	if fileFlag == "" {
+		file, err = FindConfigFile()
+		if err != nil {
+			return Config{}, err
+		}
+	} else {
+		file = fileFlag
 	}
 
 	if file == "" {
