@@ -113,7 +113,7 @@ func TestGetVersionFromFile(t *testing.T) {
 			parentDir:     "all",
 			inputFile:     "VERSION",
 			expectedError: nil,
-			expected:      "v6.6.6",
+			expected:      "6.6.6",
 		},
 		"ReturnsErrorFromInvalidVERSIONFile": {
 			parentDir:     "no-version",
@@ -223,13 +223,61 @@ func TestGetVersionFromString(t *testing.T) {
 			parentDir:     "all",
 			inputFile:     "VERSION",
 			expectedError: nil,
-			expected:      "v6.6.6",
+			expected:      "6.6.6",
 		},
 		"ReturnsErrorFromInvalidVERSIONFile": {
 			parentDir:     "no-version",
 			inputFile:     "VERSION",
 			expectedError: files.ErrGettingVersionFromVERSION,
 			expected:      "",
+		},
+		"ReturnsVersionWithPrefixFromBuildGradle": {
+			parentDir:     "prefixed",
+			inputFile:     "build.gradle",
+			expectedError: nil,
+			expected:      "v1.2.83",
+		},
+		"ReturnsVersionWithPrefixFromBuildGradleKTS": {
+			parentDir:     "prefixed",
+			inputFile:     "build.gradle.kts",
+			expectedError: nil,
+			expected:      "v0.9.11",
+		},
+		"ReturnsVersionWithPrefixFromCargoTOML": {
+			parentDir:     "prefixed",
+			inputFile:     "Cargo.toml",
+			expectedError: nil,
+			expected:      "v2.14.740",
+		},
+		"ReturnsVersionWithPrefixFromCMakeLists": {
+			parentDir:     "prefixed",
+			inputFile:     "CMakeLists.txt",
+			expectedError: nil,
+			expected:      "v1.2.59",
+		},
+		"ReturnsVersionWithPrefixFromPackageJSON": {
+			parentDir:     "prefixed",
+			inputFile:     "package.json",
+			expectedError: nil,
+			expected:      "v1.0.3",
+		},
+		"ReturnsVersionWithPrefixFromPyprojectTOML": {
+			parentDir:     "prefixed",
+			inputFile:     "pyproject.toml",
+			expectedError: nil,
+			expected:      "v9.8.123455",
+		},
+		"ReturnsVersionWithPrefixFromSetupPy": {
+			parentDir:     "prefixed",
+			inputFile:     "setup.py",
+			expectedError: nil,
+			expected:      "v0.1.19",
+		},
+		"ReturnsVersionWithPrefixFromVERSIONFile": {
+			parentDir:     "prefixed",
+			inputFile:     "VERSION",
+			expectedError: nil,
+			expected:      "v6.6.5",
 		},
 	}
 

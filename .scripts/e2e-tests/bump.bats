@@ -44,6 +44,29 @@ teardown() {
 	assert_equal "1.0.0" "$new"
 }
 
+@test "vrsn bump w. VERSION file: invalid bump" {
+	git checkout -b "$test_branch"
+	run vrsn bump fail
+	assert_failure
+	assert_line --index 0 'invalid argument "fail" for "vrsn bump"'
+
+	new=$(head -n1 VERSION)
+	assert_equal "0.0.1" "$new"
+}
+
+@test "vrsn bump w. VERSION file: valid bump --file" {
+	git checkout -b "$test_branch"
+	file='package.json'
+	printf '{"version":"v0.6.32"}' >"$file"
+	run vrsn bump patch --file="$file"
+	assert_success
+	assert_line --index 0 'version bumped from v0.6.32 to v0.6.33'
+
+	new=$(cut -d\" -f4 <"$file")
+	assert_equal "v0.6.33" "$new"
+	rm "$file"
+}
+
 @test "vrsn bump w. VERSION file: --commit default commit message" {
 	git checkout -b "$test_branch"
 	run vrsn bump minor --commit

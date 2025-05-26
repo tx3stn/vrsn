@@ -100,6 +100,48 @@ func TestWriteVersionToFile(t *testing.T) {
 		"WritesVersionToVERSIONFile": {
 			parentDir:     "bump",
 			inputFile:     "VERSION",
+			newVersion:    "6.6.6",
+			expectedError: nil,
+		},
+		"WritesPrefixedVersionToBuildGradle": {
+			parentDir:     "prefixed",
+			inputFile:     "build.gradle",
+			newVersion:    "v1.3.0",
+			expectedError: nil,
+		},
+		"WritesPrefixedVersionToBuildGradleKTS": {
+			parentDir:     "prefixed",
+			inputFile:     "build.gradle.kts",
+			newVersion:    "v0.9.12",
+			expectedError: nil,
+		},
+		"WritesPrefixedVersionToCargoTOML": {
+			parentDir:     "prefixed",
+			inputFile:     "Cargo.toml",
+			newVersion:    "v2.14.741",
+			expectedError: nil,
+		},
+		"WritesPrefixedVersionToCMakeLists": {
+			parentDir:     "prefixed",
+			inputFile:     "CMakeLists.txt",
+			newVersion:    "v1.3.0",
+			expectedError: nil,
+		},
+		"WritesPrefixedVersionToPackageJSON": {
+			parentDir:     "prefixed",
+			inputFile:     "package.json",
+			newVersion:    "v1.0.4",
+			expectedError: nil,
+		},
+		"WritesPrefixedVersionToPyProjectTOML": {
+			parentDir:     "prefixed",
+			inputFile:     "pyproject.toml",
+			newVersion:    "v9.8.123456",
+			expectedError: nil,
+		},
+		"WritesPrefixedVersionToVERSIONFile": {
+			parentDir:     "prefixed",
+			inputFile:     "VERSION",
 			newVersion:    "v6.6.6",
 			expectedError: nil,
 		},
@@ -107,6 +149,9 @@ func TestWriteVersionToFile(t *testing.T) {
 
 	for name, testCase := range testCases {
 		tc := testCase
+
+		originalFile, err := os.ReadFile(filepath.Join("testdata", tc.parentDir, tc.inputFile))
+		require.NoError(t, err)
 
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
@@ -120,13 +165,10 @@ func TestWriteVersionToFile(t *testing.T) {
 				return
 			}
 
-			expected, err := os.ReadFile(filepath.Join("testdata", "all", tc.inputFile))
+			actual, err := files.GetVersionFromFile(dir, tc.inputFile)
 			require.NoError(t, err)
 
-			actual, err := os.ReadFile(filepath.Clean(filepath.Join(dir, tc.inputFile)))
-			require.NoError(t, err)
-
-			assert.Equal(t, string(expected), string(actual))
+			assert.Equal(t, tc.newVersion, actual)
 		})
 
 		// Revert the bumped file back to what we expect it to be.
@@ -135,12 +177,9 @@ func TestWriteVersionToFile(t *testing.T) {
 				return
 			}
 
-			originalValues, err := os.ReadFile(filepath.Join("testdata", "bump-og", tc.inputFile))
-			require.NoError(t, err)
-
 			err = os.WriteFile(
-				filepath.Join("testdata", "bump", tc.inputFile),
-				originalValues,
+				filepath.Join("testdata", tc.parentDir, tc.inputFile),
+				originalFile,
 				0o600,
 			)
 			require.NoError(t, err)

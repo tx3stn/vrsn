@@ -16,4 +16,4 @@ buildscript {
 	}
 }
 
-version = "0.9.11"
+version = "v0.9.11"

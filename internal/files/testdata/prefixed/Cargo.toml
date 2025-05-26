@@ -1,6 +1,6 @@
 [package]
 name = "vrsn"
-version = "2.14.740"
+version = "v2.14.740"
 authors = ["me"]
 build = "build.rs"
 license = "GPL-3.0"
