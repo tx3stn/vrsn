@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/pelletier/go-toml/v2"
-	"github.com/spf13/viper"
+	"github.com/tx3stn/vrsn/internal/flags"
 )
 
 type (
@@ -34,56 +34,37 @@ type (
 
 // Get returns the config.
 func Get() (Config, error) {
-	usingConfigFile := true
-
-	if err := viper.ReadInConfig(); err != nil {
-		//nolint:errorlint
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			// Config file not found; ignore error if desired
-			usingConfigFile = false
-
-			if viper.GetBool("verbose") {
-				fmt.Println("no config file found")
-			}
-		} else {
-			// Config file was found but another error was produced
-			return Config{}, fmt.Errorf("error reading config file: %w", err)
-		}
-	}
-
-	conf := viper.AllSettings()
-
-	tomlContent, err := toml.Marshal(conf)
+	file, err := FindConfigFile()
 	if err != nil {
-		return Config{}, fmt.Errorf("error marshalling config file: %w", err)
+		return Config{}, err
 	}
 
-	parsedConfig := Config{}
-	if err := toml.Unmarshal(tomlContent, &parsedConfig); err != nil {
-		return Config{}, fmt.Errorf("error unmarshalling config file: %w", err)
+	if file == "" {
+		return Config{
+			Bump: BumpOpts{
+				Commit:    flags.Commit,
+				CommitMsg: flags.CommitMsg,
+				GitTag:    flags.GitTag,
+				TagMsg:    flags.TagMsg,
+			},
+			Check: CheckOpts{
+				BaseBranch: flags.BaseBranch,
+			},
+			Verbose: flags.Verbose,
+		}, nil
 	}
 
-	parsedConfig.setDefaults(usingConfigFile)
-
-	return parsedConfig, nil
-}
-
-func (c *Config) setDefaults(useConfigFile bool) {
-	if !useConfigFile {
-		c.Bump.Commit = viper.GetBool("commit")
-		c.Bump.CommitMsg = viper.GetString("commit-msg")
-		c.Bump.GitTag = viper.GetBool("git-tag")
-		c.Bump.TagMsg = viper.GetString("tag-msg")
-		c.Check.BaseBranch = viper.GetString("base-branch")
+	content, err := os.ReadFile(filepath.Clean(file))
+	if err != nil {
+		return Config{}, fmt.Errorf("error reading config file: %w", err)
 	}
 
-	if c.Check.BaseBranch == "" {
-		c.Check.BaseBranch = "main"
+	var conf Config
+	if err = toml.Unmarshal(content, &conf); err != nil {
+		return Config{}, fmt.Errorf("error unmashalling config from file: %w", err)
 	}
 
-	if c.Bump.CommitMsg == "" {
-		c.Bump.CommitMsg = "bump version"
-	}
+	return conf, nil
 }
 
 // FindConfigFile checks the expected paths for a vrsn config file and returns the
