@@ -21,7 +21,7 @@ var tomlMatcher = versionFileMatcher{
 	},
 	notFoundError:  ErrGettingVersionFromTOML,
 	singleLineFile: false,
-	versionRegex:   `(.*)(version *=* *"*)(?P<semver>\d+.\d+.\d+)(.*)`,
+	versionRegex:   `(.*)(version *=* *"*)(?P<semver>v*\d+.\d+.\d+)(.*)`,
 }
 
 // not toml files, but version string is same format.
@@ -45,7 +45,7 @@ func versionFileMatchers() map[string]versionFileMatcher {
 			},
 			notFoundError:  ErrGettingVersionFromCMakeLists,
 			singleLineFile: false,
-			versionRegex:   `(project\(.*)(VERSION ){1}(?P<semver>\d+.\d+.\d+)(.*\))`,
+			versionRegex:   `(project\(.*)(VERSION ){1}(?P<semver>v*\d+.\d+.\d+)(.*\))`,
 		},
 		"package.json": {
 			lineMatcher: func(line string) bool {
@@ -53,7 +53,7 @@ func versionFileMatchers() map[string]versionFileMatcher {
 			},
 			notFoundError:  ErrGettingVersionFromPackageJSON,
 			singleLineFile: false,
-			versionRegex:   `(.*)("version": *"){1}(?P<semver>\d+.\d+.\d+)(".*)`,
+			versionRegex:   `(.*)("version": *"){1}(?P<semver>v*\d+.\d+.\d+)(".*)`,
 		},
 		"pyproject.toml": tomlMatcher,
 		"setup.py": {
@@ -62,7 +62,7 @@ func versionFileMatchers() map[string]versionFileMatcher {
 			},
 			notFoundError:  ErrGettingVersionFromSetupPy,
 			singleLineFile: false,
-			versionRegex:   `(.*)(version=['"])(?P<semver>\d+.\d+.\d+)(.*)`,
+			versionRegex:   `(.*)(version=['"])(?P<semver>v*\d+.\d+.\d+)(.*)`,
 		},
 		"VERSION": {
 			lineMatcher: func(line string) bool {
@@ -71,7 +71,7 @@ func versionFileMatchers() map[string]versionFileMatcher {
 			},
 			notFoundError:  ErrGettingVersionFromVERSION,
 			singleLineFile: true,
-			versionRegex:   `(.*)(?P<semver>\d+.\d+.\d+)(.*)`,
+			versionRegex:   `(.*)(?P<semver>v*\d+.\d+.\d+)(.*)`,
 		},
 	}
 }
