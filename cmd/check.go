@@ -133,7 +133,8 @@ read them from A N Y W H E R E.
 		Use:           "check",
 	}
 	cmd.Flags().
-		String(
+		StringVar(
+			&flags.BaseBranch,
 			"base-branch",
 			"main",
 			"Name of the base branch used when auto detecting version changes.",

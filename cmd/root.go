@@ -46,7 +46,7 @@ func init() {
 	rootCmd.AddCommand(NewCmdBump())
 
 	rootCmd.PersistentFlags().
-		Bool("verbose", false, "display verbose output for more detail on what the command is doing")
+		BoolVar(&flags.Verbose, "verbose", false, "display verbose output for more detail on what the command is doing")
 
 	if err := viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose")); err != nil {
 		fmt.Printf("error binding --verbose flag: %s", err)
