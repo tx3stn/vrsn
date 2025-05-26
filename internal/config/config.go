@@ -35,6 +35,7 @@ type (
 // Get returns the config.
 func Get(fileFlag string) (Config, error) {
 	var file string
+
 	var err error
 
 	if fileFlag == "" {
