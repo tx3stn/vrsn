@@ -5,5 +5,5 @@ coverage.out
 TODO.md
 dist/
 .env
-demo.gif
+*.gif
 .mypy_cache/

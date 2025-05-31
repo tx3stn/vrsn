@@ -26,7 +26,8 @@ build-image:
 .PHONY: generate-gifs
 generate-gifs:
 	@docker build --tag ${BINARY_NAME}-vhs:demo -f ./.docker/demo-gif.Dockerfile .
-	@docker run --rm -v ${PWD}:/vhs ${BINARY_NAME}-vhs:demo /vhs/.scripts/demo.tape
+	@docker run --rm -v ${PWD}:/vhs ${BINARY_NAME}-vhs:demo /vhs/.scripts/gifs/demo.tape
+	@docker run --rm -v ${PWD}:/vhs ${BINARY_NAME}-vhs:demo /vhs/.scripts/gifs/accessible-mode.tape
 
 .PHONY: install
 install: build
