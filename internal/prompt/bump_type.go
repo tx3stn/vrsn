@@ -51,13 +51,16 @@ func selectBumpType(opts version.BumpOptions) (string, error) {
 		Title("select version bump type:").
 		Value(&selected)
 
-	prompt.WithAccessible(os.Getenv("ACCESSIBLE") != "")
+	accessible := os.Getenv("ACCESSIBLE") != ""
+	prompt.WithAccessible(accessible)
 
 	if err := prompt.Run(); err != nil {
 		return "", fmt.Errorf("error prompting for bump type: %w", err)
 	}
 
-	fmt.Println(strings.ReplaceAll(prompt.View(), "\n", ""))
+	if !accessible {
+		fmt.Println(strings.ReplaceAll(prompt.View(), "\n", ""))
+	}
 
 	return selected, nil
 }
