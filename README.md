@@ -198,6 +198,19 @@ the existing tags and write a new tag. e.g.:
 vrsn bump --git-tag --tag-msg 'custom tag message'
 ```
 
+### Accessible mode
+
+The `vrsn bump` command with no arguments will spawn an interactive picker.
+You can set an `ACCESSIBLE` environment variable which will drop the TUI interactive 
+selection in favour of a standard prompt that should work better with screen reader
+tools, e.g.:
+
+```bash
+ACCESSIBLE='true' vrsn bump
+```
+
+![accessible mode](https://github.com/user-attachments/assets/e5238f2f-6561-470f-8f4e-ef020ca30ecc)
+
 ## Setting defaults in a config file
 
 If you always want `vrsn` to use specific flags, you can set default values for

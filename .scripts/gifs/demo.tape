@@ -1,19 +1,8 @@
 Set Height 1000
+Source '/vhs/.scripts/gifs/base.tape'
+
 Output demo.gif
-Require git
-Set Theme "OneDark"
-Set Margin 20
-Set MarginFill "#005869"
-Set BorderRadius 30
 
-Hide
-Type "alias vrsn=$(pwd)/vrsn"
-Enter
-Type "clear"
-Enter
-Show
-
-Set TypingSpeed 0.16s
 Type "vrsn"
 Enter 2
 Sleep 2s
