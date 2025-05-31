@@ -25,7 +25,7 @@ jobs:
         name: setup bats
         id: setup-bats
       - name: install expect
-        run: apt install expect
+        run: sudo apt install -y expect
       - name: end to end tests
         shell: bash
         env:
