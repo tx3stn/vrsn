@@ -3,6 +3,7 @@ package prompt
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/charmbracelet/huh"
@@ -49,6 +50,8 @@ func selectBumpType(opts version.BumpOptions) (string, error) {
 		Options(huh.NewOptions(opts.PromptOptions()...)...).
 		Title("select version bump type:").
 		Value(&selected)
+
+	prompt.WithAccessible(os.Getenv("ACCESSIBLE") != "")
 
 	if err := prompt.Run(); err != nil {
 		return "", fmt.Errorf("error prompting for bump type: %w", err)
