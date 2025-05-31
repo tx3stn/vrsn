@@ -1,0 +1,9 @@
+#!/usr/bin/expect -f
+
+set env(ACCESSIBLE) true
+set timeout -1
+spawn vrsn bump
+match_max 100000
+expect -re ".*select version bump type\:(.|\n|\r)*"
+send -- "2\r"
+expect eof

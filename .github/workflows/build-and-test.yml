@@ -24,6 +24,8 @@ jobs:
       - uses: bats-core/bats-action@3.0.1
         name: setup bats
         id: setup-bats
+      - name: install expect
+        run: apt install expect
       - name: end to end tests
         shell: bash
         env:

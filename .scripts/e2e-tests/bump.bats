@@ -44,6 +44,20 @@ teardown() {
 	assert_equal "1.0.0" "$new"
 }
 
+@test "vrsn bump w. VERSION file: interactive bump" {
+	git checkout -b "$test_branch"
+	expect_script="bump-interactive.exp"
+	new_path="$test_dir/$expect_script"
+	cp "$BATS_TEST_DIRNAME/$expect_script" "$new_path"
+
+	eval "run $new_path"
+	assert_success
+
+	new=$(head -n1 VERSION)
+	assert_equal "0.1.0" "$new"
+	rm "$new_path"
+}
+
 @test "vrsn bump w. VERSION file: invalid bump" {
 	git checkout -b "$test_branch"
 	run vrsn bump fail
