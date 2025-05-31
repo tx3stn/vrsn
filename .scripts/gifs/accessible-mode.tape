@@ -1,4 +1,4 @@
-Set Height 600
+Set Height 400
 Source '/vhs/.scripts/gifs/base.tape'
 
 Output accessible-mode.gif

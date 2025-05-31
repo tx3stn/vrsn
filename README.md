@@ -209,6 +209,8 @@ tools, e.g.:
 ACCESSIBLE='true' vrsn bump
 ```
 
+![accessible mode](https://github.com/user-attachments/assets/e5238f2f-6561-470f-8f4e-ef020ca30ecc)
+
 ## Setting defaults in a config file
 
 If you always want `vrsn` to use specific flags, you can set default values for
