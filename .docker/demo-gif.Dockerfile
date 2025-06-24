@@ -1,4 +1,4 @@
-FROM ghcr.io/charmbracelet/vhs:v0.9.0
+FROM ghcr.io/charmbracelet/vhs:v0.10.0
 
 RUN apt-get update && \
 	apt-get -y install --no-install-recommends git && \
