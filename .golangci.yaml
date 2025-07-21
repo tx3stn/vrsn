@@ -6,9 +6,10 @@ linters:
   default: all
   disable:
     - varnamelen  # impractical IRL.
-    - godox  # TODO statements are useful and shouldn't make a linter error.
+    - godox  # TODO: statements are useful and shouldn't make a linter error.
     - exhaustruct  # more annoying than useful.
     - forbidigo
+    - noinlineerr
   exclusions:
     rules:
       - path: 'internal\/flags\/vars\.go'
@@ -17,6 +18,9 @@ linters:
       - path: 'internal\/files\/version\.go'
         linters:
           - gochecknoglobals
+      - path: 'internal\/git\/command\.go'
+        linters:
+          - noctx
       - path: '_test\.go'
         linters:
           - noctx
