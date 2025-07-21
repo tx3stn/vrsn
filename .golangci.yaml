@@ -18,6 +18,9 @@ linters:
       - path: 'internal\/files\/version\.go'
         linters:
           - gochecknoglobals
+      - path: 'internal\/git\/command\.go'
+        linters:
+          - noctx
       - path: '_test\.go'
         linters:
           - noctx
