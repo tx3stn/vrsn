@@ -1,0 +1,19 @@
+# Build artifacts
+vrsn
+*.exe
+
+# CI/CD
+.github/
+.circleci/
+
+# Development tools
+.golangci.yaml
+.goreleaser.yml
+
+# Docker
+Dockerfile
+.docker/
+
+# Documentation
+README.md
+LICENSE
