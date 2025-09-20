@@ -2,6 +2,7 @@ package files_test
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -16,47 +17,46 @@ func TestIsGitDir(t *testing.T) {
 		inputDir      string
 		errorExpected error
 		expected      bool
+		needsGitDir   bool
 	}{
 		"ReturnsTrueIfIsGitDir": {
 			inputDir:      "testdata/all",
 			errorExpected: nil,
 			expected:      true,
+			needsGitDir:   true,
 		},
 		"ReturnsFalseIfNotGitDir": {
 			inputDir:      "testdata/no-version",
 			errorExpected: nil,
 			expected:      false,
+			needsGitDir:   false,
 		},
 		"ReturnsErrorIfDirectoryDoesNotExist": {
 			inputDir:      "testdata/foo",
 			errorExpected: files.ErrGettingFilesInDirectory,
 			expected:      false,
+			needsGitDir:   false,
 		},
 	}
 
-	for name, testCase := range testCases {
-		tc := testCase
-
+	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			if tc.inputDir == "testdata/all" {
-				renameDir("gitdir", ".git")
+			testDir := tc.inputDir
+
+			// Copy testdata to temp dir and create .git directory
+			if tc.needsGitDir {
+				tmpDir := t.TempDir()
+				err := os.MkdirAll(filepath.Join(tmpDir, ".git"), 0o750)
+				require.NoError(t, err)
+
+				testDir = tmpDir
 			}
 
-			actual, err := files.IsGitDir(tc.inputDir)
+			actual, err := files.IsGitDir(testDir)
 			require.ErrorIs(t, err, tc.errorExpected)
 			assert.Equal(t, tc.expected, actual)
 		})
 	}
-
-	t.Cleanup(func() {
-		renameDir(".git", "gitdir")
-	})
-}
-
-func renameDir(from, to string) {
-	// Git won't let you commit the `.git` directory but that's needed for this
-	// test, so just rename the directory before the test runs.
-	_ = os.Rename("testdata/all/"+from, "testdata/all/"+to)
 }

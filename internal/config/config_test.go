@@ -1,7 +1,6 @@
 package config_test
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,7 +9,6 @@ import (
 )
 
 func TestFindConfigFile(t *testing.T) {
-	// TODO: look at mocking current directory
 	testCases := map[string]struct {
 		xdgEnvValue   string
 		homeEnvValue  string
@@ -47,14 +45,6 @@ func TestFindConfigFile(t *testing.T) {
 			file, err := config.FindConfigFile()
 			require.ErrorIs(t, err, tc.expectedError)
 			assert.Equal(t, tc.expected, file)
-		})
-
-		t.Cleanup(func() {
-			err := os.Unsetenv("XDG_CONFIG_DIR")
-			require.NoError(t, err)
-
-			err = os.Unsetenv("HOME")
-			require.NoError(t, err)
 		})
 	}
 }
