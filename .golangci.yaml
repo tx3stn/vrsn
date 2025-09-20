@@ -10,6 +10,7 @@ linters:
     - exhaustruct  # more annoying than useful.
     - forbidigo
     - noinlineerr
+    - wsl
   exclusions:
     rules:
       - path: 'internal\/flags\/vars\.go'
@@ -77,6 +78,11 @@ linters:
         - ^golang.org/x/tools/go/analysis.Analyzer$
         - ^google.golang.org/protobuf/.+Options$
         - ^gopkg.in/yaml.v3.Node$
+    wsl_v5:
+      allow-first-in-block: true
+      allow-whole-block: false
+      branch-max-lines: 2
+      case-max-lines: 0
 
 formatters:
   enable:

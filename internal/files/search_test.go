@@ -2,9 +2,9 @@ package files_test
 
 import (
 	"path/filepath"
-	"reflect"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tx3stn/vrsn/internal/files"
 )
@@ -22,13 +22,17 @@ func TestGetVersionFilesInDirectory(t *testing.T) {
 			assertError:   require.NoError,
 			expectedFiles: []string{},
 		},
-		"ReturnsSupportVersionFilesWhenFound": {
+		"ReturnsSupportedVersionFilesWhenFound": {
 			directory:   "testdata/all",
 			assertError: require.NoError,
 			expectedFiles: []string{
+				"build.gradle",
+				"build.gradle.kts",
 				"Cargo.toml",
+				"CMakeLists.txt",
 				"package.json",
 				"pyproject.toml",
+				"setup.py",
 				"VERSION",
 			},
 		},
@@ -48,7 +52,7 @@ func TestGetVersionFilesInDirectory(t *testing.T) {
 			path := filepath.FromSlash(tc.directory)
 			actual, err := files.GetVersionFilesInDirectory(path)
 			tc.assertError(t, err)
-			reflect.DeepEqual(tc.expectedFiles, actual)
+			assert.ElementsMatch(t, tc.expectedFiles, actual)
 		})
 	}
 }

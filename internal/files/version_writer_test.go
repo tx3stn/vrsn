@@ -20,13 +20,13 @@ func TestWriteVersionToFile(t *testing.T) {
 		expectedError error
 	}{
 		"ReturnsErrorForUnsupportedVersionFile": {
-			parentDir:     "bump",
+			parentDir:     "all",
 			inputFile:     "foo.txt",
 			newVersion:    "",
 			expectedError: files.ErrUnsuportedFile,
 		},
 		"WritesVersionToBuildGradle": {
-			parentDir:     "bump",
+			parentDir:     "all",
 			inputFile:     "build.gradle",
 			newVersion:    "1.3.0",
 			expectedError: nil,
@@ -38,7 +38,7 @@ func TestWriteVersionToFile(t *testing.T) {
 			expectedError: files.ErrGettingVersionFromBuildGradle,
 		},
 		"WritesVersionToBuildGradleKTS": {
-			parentDir:     "bump",
+			parentDir:     "all",
 			inputFile:     "build.gradle.kts",
 			newVersion:    "0.9.12",
 			expectedError: nil,
@@ -50,7 +50,7 @@ func TestWriteVersionToFile(t *testing.T) {
 			expectedError: files.ErrGettingVersionFromBuildGradle,
 		},
 		"WritesVersionToCargoTOML": {
-			parentDir:     "bump",
+			parentDir:     "all",
 			inputFile:     "Cargo.toml",
 			newVersion:    "2.14.741",
 			expectedError: nil,
@@ -62,7 +62,7 @@ func TestWriteVersionToFile(t *testing.T) {
 			expectedError: files.ErrGettingVersionFromTOML,
 		},
 		"WritesVersionToCMakeLists": {
-			parentDir:     "bump",
+			parentDir:     "all",
 			inputFile:     "CMakeLists.txt",
 			newVersion:    "1.3.0",
 			expectedError: nil,
@@ -74,7 +74,7 @@ func TestWriteVersionToFile(t *testing.T) {
 			expectedError: files.ErrGettingVersionFromCMakeLists,
 		},
 		"WritesVersionToPackageJSON": {
-			parentDir:     "bump",
+			parentDir:     "all",
 			inputFile:     "package.json",
 			newVersion:    "1.0.4",
 			expectedError: nil,
@@ -86,7 +86,7 @@ func TestWriteVersionToFile(t *testing.T) {
 			expectedError: files.ErrGettingVersionFromPackageJSON,
 		},
 		"WritesVersionToPyProjectTOML": {
-			parentDir:     "bump",
+			parentDir:     "all",
 			inputFile:     "pyproject.toml",
 			newVersion:    "9.8.123456",
 			expectedError: nil,
@@ -98,7 +98,7 @@ func TestWriteVersionToFile(t *testing.T) {
 			expectedError: files.ErrGettingVersionFromTOML,
 		},
 		"WritesVersionToVERSIONFile": {
-			parentDir:     "bump",
+			parentDir:     "all",
 			inputFile:     "VERSION",
 			newVersion:    "6.6.6",
 			expectedError: nil,
@@ -147,42 +147,38 @@ func TestWriteVersionToFile(t *testing.T) {
 		},
 	}
 
-	for name, testCase := range testCases {
-		tc := testCase
-
-		originalFile, err := os.ReadFile(filepath.Join("testdata", tc.parentDir, tc.inputFile))
-		require.NoError(t, err)
-
+	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			dir := filepath.Join("testdata", tc.parentDir)
-			err := files.WriteVersionToFile(dir, tc.inputFile, tc.newVersion)
+			tmpDir := copyTestFile(t, tc.parentDir, tc.inputFile)
+			err := files.WriteVersionToFile(tmpDir, tc.inputFile, tc.newVersion)
 			require.ErrorIs(t, err, tc.expectedError)
 
-			// Only assert the written contents if the writer func does not error.
 			if err != nil {
 				return
 			}
 
-			actual, err := files.GetVersionFromFile(dir, tc.inputFile)
+			actual, err := files.GetVersionFromFile(tmpDir, tc.inputFile)
 			require.NoError(t, err)
 
 			assert.Equal(t, tc.newVersion, actual)
 		})
-
-		// Revert the bumped file back to what we expect it to be.
-		t.Cleanup(func() {
-			if tc.newVersion == "" {
-				return
-			}
-
-			err = os.WriteFile(
-				filepath.Join("testdata", tc.parentDir, tc.inputFile),
-				originalFile,
-				0o600,
-			)
-			require.NoError(t, err)
-		})
 	}
+}
+
+func copyTestFile(t *testing.T, parentDir, filename string) string {
+	t.Helper()
+
+	tmpDir := t.TempDir()
+	originalPath := filepath.Join("testdata", parentDir, filename)
+
+	data, err := os.ReadFile(filepath.Clean(originalPath))
+	require.NoError(t, err)
+
+	testPath := filepath.Join(tmpDir, filename)
+	err = os.WriteFile(testPath, data, 0o600)
+	require.NoError(t, err)
+
+	return tmpDir
 }
