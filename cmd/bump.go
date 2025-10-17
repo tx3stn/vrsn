@@ -31,6 +31,7 @@ func NewCmdBump() *cobra.Command {
 			}
 
 			log := logger.NewBasic(false, conf.Verbose)
+
 			curDir, err := os.Getwd()
 			if err != nil {
 				return fmt.Errorf("error getting current working directory: %w", err)

@@ -35,7 +35,8 @@ install: build
 
 .PHONY: lint
 lint:
-	@golangci-lint run -v ${DIR}
+	@golangci-lint fmt ${DIR}
+	@golangci-lint run --fix -v ${DIR}
 
 .PHONY: test
 test:
