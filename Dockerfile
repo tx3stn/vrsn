@@ -1,12 +1,12 @@
-FROM alpine:3.22.1
+FROM alpine:3.22.2
 RUN apk add --no-cache \
-  curl \
-  git \
-  musl-dev
+	curl \
+	git \
+	musl-dev
 
 ENV WORKDIR=/repo
 RUN mkdir $WORKDIR && \
-  git config --global --add safe.directory $WORKDIR
+	git config --global --add safe.directory $WORKDIR
 
 WORKDIR ${WORKDIR}
 
