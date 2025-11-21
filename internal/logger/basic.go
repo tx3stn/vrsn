@@ -30,7 +30,7 @@ func (b Basic) Debug(msg string) {
 
 // Debugf is a log that will only be displayed if the `vrsn` command is run in
 // verbose mode, with support for variables.
-func (b Basic) Debugf(msg string, args ...interface{}) {
+func (b Basic) Debugf(msg string, args ...any) {
 	b.Debug(fmt.Sprintf(msg, args...))
 }
 
@@ -42,6 +42,6 @@ func (b Basic) Info(msg string) {
 
 // Infof is an info level log which will be default always be displayed with
 // support for variables.
-func (b Basic) Infof(msg string, args ...interface{}) {
+func (b Basic) Infof(msg string, args ...any) {
 	b.Info(fmt.Sprintf(msg, args...))
 }
