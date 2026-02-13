@@ -22,6 +22,10 @@ linters:
       - path: 'internal\/git\/command\.go'
         linters:
           - noctx
+      - path: 'internal\/version\/*'
+        linters:
+          - revive
+        text: 'var-naming: avoid package names that conflict with Go standard library package names'
       - path: '_test\.go'
         linters:
           - noctx
