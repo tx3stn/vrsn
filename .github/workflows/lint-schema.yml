@@ -1,9 +1,12 @@
 name: lint schema
 
 on:
+  push:
+    paths:
+      - .schema/**
   pull_request:
     paths:
-      - .schema/*
+      - .schema/**
 
 jobs:
   lint-schema:

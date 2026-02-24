@@ -51,6 +51,7 @@ func WriteVersionToFile(dir string, inputFile string, newVersion string) error {
 		}
 	}
 
+	// #nosec G703 -- intentional: this CLI allows user-directed file paths.
 	if err := os.Rename(tmpFile.Name(), file.Name()); err != nil {
 		return fmt.Errorf("error renaming temp file: %w", err)
 	}
