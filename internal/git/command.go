@@ -8,6 +8,7 @@ import (
 )
 
 func gitCommand(dir string, errMsg string, args ...string) (string, error) {
+	// #nosec G204 -- args are intentional git CLI flags/subcommands
 	cmd := exec.Command("git", args...)
 	cmd.Dir = dir
 

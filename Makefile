@@ -42,6 +42,10 @@ lint:
 test:
 	@CGO_ENABLED=1 go test ${DIR} -race -cover
 
+.PHONY: testsum
+testsum:
+	@CGO_ENABLED=1 gotestsum --format-hide-empty-pkg --format pkgname-and-test-fails -- -race ${DIR}
+
 .PHONY: test-e2e
 test-e2e:
 	@docker build . -f .docker/bats-tests.Dockerfile -t vrsn/e2e-tests:local
