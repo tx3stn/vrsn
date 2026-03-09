@@ -1,6 +1,6 @@
 module github.com/tx3stn/vrsn
 
-go 1.25.1
+go 1.26
 
 require (
 	github.com/charmbracelet/huh v0.8.0

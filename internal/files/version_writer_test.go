@@ -177,6 +177,7 @@ func copyTestFile(t *testing.T, parentDir, filename string) string {
 	require.NoError(t, err)
 
 	testPath := filepath.Join(tmpDir, filename)
+	//#nosec: G703
 	err = os.WriteFile(testPath, data, 0o600)
 	require.NoError(t, err)
 
