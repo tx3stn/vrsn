@@ -185,7 +185,7 @@ Don't like the default commit message? Provide your own custom one with
 `--commit-msg`.
 
 ```bash
-version bump minor --commit --commit-msg 'custom bump version commit message'
+vrsn bump minor --commit --commit-msg 'custom bump version commit message'
 ```
 
 You can use the `--file` flag to point at a file that is not in the root of the
