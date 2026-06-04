@@ -5,7 +5,7 @@
 # GITHUB_STEP_SUMMARY environment variable so the test summary is always
 # displayed if things pass or fail.
 
-TEST_OUTPUT=$(make test)
+TEST_OUTPUT=$(CGO_ENABLED=1 go test ./... -race -cover)
 EXIT_CODE="$?"
 
 if [ "$EXIT_CODE" = 0 ]; then
