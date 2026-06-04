@@ -29,8 +29,9 @@ const (
 	ErrGettingVersionFromTOML
 	// ErrGettingVersionFromVERSION is the error when the VERSION file is empty.
 	ErrGettingVersionFromVERSION
-	// ErrUnsuportedFile is the error returned when the file specified is not supported.
-	ErrUnsuportedFile
+	// ErrGettingVersionBestEffort is the error when a version can't be found in
+	// an unsupported file using best effort matching.
+	ErrGettingVersionBestEffort
 	// ErrGettingFilesInDirectory is the error returned when getting files in a directory fails.
 	ErrGettingFilesInDirectory
 	// ErrFileNotFound is the error returned when the specified version file cannot be found.
@@ -71,8 +72,8 @@ func (e Error) Error() string {
 	case ErrGettingVersionFromVERSION:
 		return "unable to read version from VERSION file"
 
-	case ErrUnsuportedFile:
-		return "is not a supported version file type"
+	case ErrGettingVersionBestEffort:
+		return "unable to read version using best effort matching, file is not a supported version file type"
 
 	case ErrGettingFilesInDirectory:
 		return "error getting files in directory"
