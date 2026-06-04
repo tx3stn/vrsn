@@ -210,6 +210,19 @@ the existing tags and write a new tag. e.g.:
 vrsn bump --git-tag --tag-msg 'custom tag message'
 ```
 
+Need a version file and a git tag? Combine the `--git-tag` flag with `--file`
+and `--commit` to bump the version in the file, commit it, and then tag that
+commit. e.g.:
+
+```bash
+vrsn bump patch --git-tag --file VERSION --commit
+```
+
+In this mode the version file is the source of truth for the current version,
+and the new version is used for both the file and the tag. The `--commit`
+option is required so the tag has a version bump commit to point at, you'll
+get an error without it.
+
 ### Accessible mode
 
 The `vrsn bump` command with no arguments will spawn an interactive picker.

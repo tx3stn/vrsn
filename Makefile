@@ -39,12 +39,11 @@ lint:
 	@golangci-lint run --fix ${DIR}
 
 .PHONY: test
-test:
-	@CGO_ENABLED=1 go test ${DIR} -race -cover
+test: testsum test-e2e
 
 .PHONY: testsum
 testsum:
-	@CGO_ENABLED=1 gotestsum --format-hide-empty-pkg --format pkgname-and-test-fails -- -race ${DIR}
+	@CGO_ENABLED=1 gotestsum --format-hide-empty-pkg --format pkgname-and-test-fails -- -race -cover ${DIR}
 
 .PHONY: test-e2e
 test-e2e:
