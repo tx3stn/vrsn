@@ -24,6 +24,14 @@ var tomlMatcher = versionFileMatcher{
 	versionRegex:   `(.*)(version\ *=*\ *"*)(?P<semver>v*\d+.\d+.\d+)(.*)`,
 }
 
+// not a toml file, but version attribute is same format.
+var bazelMatcher = versionFileMatcher{
+	lineMatcher:    tomlMatcher.lineMatcher,
+	notFoundError:  ErrGettingVersionFromBuildBazel,
+	singleLineFile: false,
+	versionRegex:   tomlMatcher.versionRegex,
+}
+
 // not toml files, but version string is same format.
 var gradleMatcher = versionFileMatcher{
 	lineMatcher:    tomlMatcher.lineMatcher,
@@ -36,6 +44,7 @@ var gradleMatcher = versionFileMatcher{
 // from the version file.
 func versionFileMatchers() map[string]versionFileMatcher {
 	return map[string]versionFileMatcher{
+		"BUILD.bazel":      bazelMatcher,
 		"build.gradle":     gradleMatcher,
 		"build.gradle.kts": gradleMatcher,
 		"Cargo.toml":       tomlMatcher,

@@ -12,6 +12,9 @@ const (
 	// ErrGettingVersionFromCMakeLists is the error when the version can't be
 	// found inside a CMakeLists.txt file.
 	ErrGettingVersionFromCMakeLists
+	// ErrGettingVersionFromBuildBazel is the error when a version attribute can't
+	// be found inside a BUILD.bazel file.
+	ErrGettingVersionFromBuildBazel
 	// ErrGettingVersionFromBuildGradle is the error when the a version key can't
 	// be found inside a build.gradle or build.gradle.kts file.
 	ErrGettingVersionFromBuildGradle
@@ -46,6 +49,9 @@ func (e Error) Error() string {
 
 	case ErrMultipleVersionFiles:
 		return "multiple version files found in directory, use the --file flag to select the specific file to use"
+
+	case ErrGettingVersionFromBuildBazel:
+		return "unable to read version from BUILD.bazel"
 
 	case ErrGettingVersionFromBuildGradle:
 		return "unable to read version from build.gradle"

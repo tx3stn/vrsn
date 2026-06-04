@@ -26,6 +26,7 @@ func TestGetVersionFilesInDirectory(t *testing.T) {
 			directory:   "testdata/all",
 			assertError: require.NoError,
 			expectedFiles: []string{
+				"BUILD.bazel",
 				"build.gradle",
 				"build.gradle.kts",
 				"Cargo.toml",

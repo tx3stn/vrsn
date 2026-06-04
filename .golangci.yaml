@@ -11,6 +11,7 @@ linters:
     - forbidigo
     - noinlineerr
     - wsl
+    - gomodguard
   exclusions:
     rules:
       - path: 'internal\/flags\/vars\.go'
@@ -32,6 +33,7 @@ linters:
           - funlen
           - err113
           - gochecknoglobals
+          - goconst
       - text: 'unused-parameter: parameter \S+ seems to be unused, consider removing or renaming it as _'
         linters:
           - revive

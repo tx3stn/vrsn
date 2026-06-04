@@ -25,6 +25,18 @@ func TestGetVersionFromFile(t *testing.T) {
 			expectedError: files.ErrUnsuportedFile,
 			expected:      "",
 		},
+		"ReturnsVersionFromBUILDBazel": {
+			parentDir:     "all",
+			inputFile:     "BUILD.bazel",
+			expectedError: nil,
+			expected:      "0.16.4",
+		},
+		"ReturnsErrorFromInvalidBUILDBazel": {
+			parentDir:     "no-version",
+			inputFile:     "BUILD.bazel",
+			expectedError: files.ErrGettingVersionFromBuildBazel,
+			expected:      "",
+		},
 		"ReturnsVersionFromBuildGradle": {
 			parentDir:     "all",
 			inputFile:     "build.gradle",
@@ -147,6 +159,18 @@ func TestGetVersionFromString(t *testing.T) {
 		expectedError error
 		expected      string
 	}{
+		"ReturnsVersionFromBUILDBazel": {
+			parentDir:     "all",
+			inputFile:     "BUILD.bazel",
+			expectedError: nil,
+			expected:      "0.16.4",
+		},
+		"ReturnsErrorFromInvalidBUILDBazel": {
+			parentDir:     "no-version",
+			inputFile:     "BUILD.bazel",
+			expectedError: files.ErrGettingVersionFromBuildBazel,
+			expected:      "",
+		},
 		"ReturnsVersionFromBuildGradle": {
 			parentDir:     "all",
 			inputFile:     "build.gradle",
@@ -230,6 +254,12 @@ func TestGetVersionFromString(t *testing.T) {
 			inputFile:     "VERSION",
 			expectedError: files.ErrGettingVersionFromVERSION,
 			expected:      "",
+		},
+		"ReturnsVersionWithPrefixFromBUILDBazel": {
+			parentDir:     "prefixed",
+			inputFile:     "BUILD.bazel",
+			expectedError: nil,
+			expected:      "v0.16.3",
 		},
 		"ReturnsVersionWithPrefixFromBuildGradle": {
 			parentDir:     "prefixed",
