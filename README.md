@@ -248,11 +248,15 @@ ACCESSIBLE='true' vrsn bump
 
 If you always want `vrsn` to use specific flags, you can set default values for
 them in a config file. The following locations are checked in order of
-precedence:
+precedence, and the first config file found is used:
 
-1. `vrsn.toml` in the current directory (project level config)
-2. `$XDG_CONFIG_DIR/vrsn.toml`
-3. `$HOME/.config/vrsn.toml`
+1. The file passed with the `--config` flag
+2. `vrsn.toml` in the current directory (project level config)
+3. `$XDG_CONFIG_DIR/vrsn.toml`
+4. `$HOME/.config/vrsn.toml`
+
+Note: config files are not merged, so a project level `vrsn.toml` replaces
+your global config entirely rather than overriding individual options.
 
 An example config file can be found at [./.schema/vrsn.toml](./.schema/vrsn.toml).
 
@@ -271,6 +275,9 @@ All of the files must contain the same version, if they don't `vrsn` will
 error, and running with `--verbose` will log the version found in each file.
 When `files` is set in the config file it takes precedence over the `--file`
 flag.
+
+The `files` option is optional and best suited to a project level `vrsn.toml`,
+since the list of version files is specific to each repository.
 
 ## Running in Docker
 
