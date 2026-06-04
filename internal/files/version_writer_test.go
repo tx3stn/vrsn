@@ -25,6 +25,18 @@ func TestWriteVersionToFile(t *testing.T) {
 			newVersion:    "",
 			expectedError: files.ErrUnsuportedFile,
 		},
+		"WritesVersionToBUILDBazel": {
+			parentDir:     "all",
+			inputFile:     "BUILD.bazel",
+			newVersion:    "0.16.4",
+			expectedError: nil,
+		},
+		"ReturnsErrorForInvalidBUILDBazel": {
+			parentDir:     "no-version",
+			inputFile:     "BUILD.bazel",
+			newVersion:    "",
+			expectedError: files.ErrGettingVersionFromBuildBazel,
+		},
 		"WritesVersionToBuildGradle": {
 			parentDir:     "all",
 			inputFile:     "build.gradle",
@@ -101,6 +113,12 @@ func TestWriteVersionToFile(t *testing.T) {
 			parentDir:     "all",
 			inputFile:     "VERSION",
 			newVersion:    "6.6.6",
+			expectedError: nil,
+		},
+		"WritesPrefixedVersionToBUILDBazel": {
+			parentDir:     "prefixed",
+			inputFile:     "BUILD.bazel",
+			newVersion:    "v0.16.4",
 			expectedError: nil,
 		},
 		"WritesPrefixedVersionToBuildGradle": {

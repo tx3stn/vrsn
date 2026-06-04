@@ -1,0 +1,8 @@
+load("@rules_python//python:packaging.bzl", "py_wheel")
+
+py_wheel(
+    name = "wheel",
+    distribution = "vrsn",
+    version = "v0.16.3",
+    deps = [":lib"],
+)
