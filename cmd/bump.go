@@ -17,7 +17,7 @@ import (
 // NewCmdBump creates the bump command.
 // TODO: split this out into smaller chunks and remove nolint.
 //
-//nolint:funlen,cyclop
+//nolint:funlen
 func NewCmdBump() *cobra.Command {
 	shortDescription := "Increment the current semantic version with a valid patch, major or minor bump."
 
@@ -40,53 +40,28 @@ func NewCmdBump() *cobra.Command {
 			log.Debugf("config: %+v", conf)
 			log.Debugf("bump command args: %s", args)
 
-			if conf.Bump.GitTag {
-				return bumpGitTag(curDir, args, log, conf.Bump.TagMsg)
-			}
-
-			versionFileFinder := files.VersionFileFinder{
-				FileFlag:  flags.VersionFile,
-				Logger:    log,
-				SearchDir: curDir,
-			}
-
-			versionFile, err := versionFileFinder.Find()
-			if err != nil {
-				return fmt.Errorf("error finding version file: %w", err)
-			}
-
-			currentVersion, err := files.GetVersionFromFile(curDir, versionFile)
-			if err != nil {
-				return fmt.Errorf("error getting version from file: %w", err)
-			}
-
-			newVersion, err := getNewVersion(currentVersion, args)
+			err = ValidateBumpOpts(conf.Bump.GitTag, flags.VersionFile, conf.Bump.Commit)
 			if err != nil {
 				return err
 			}
 
-			if err := files.WriteVersionToFile(curDir, versionFile, newVersion); err != nil {
-				return fmt.Errorf("error writing version to file: %w", err)
+			if conf.Bump.GitTag && flags.VersionFile == "" {
+				return bumpGitTag(curDir, args, log, conf.Bump.TagMsg)
 			}
 
-			log.Infof("version bumped from %s to %s", currentVersion, newVersion)
+			newVersion, err := bumpVersionFile(curDir, args, log, conf)
+			if err != nil {
+				return err
+			}
 
-			if conf.Bump.Commit {
-				addOutput, err := git.Add(curDir, versionFile)
-				if err != nil {
-					log.Infof("git add output: %s", addOutput)
-
-					return fmt.Errorf("error git adding files: %w", err)
+			// When --git-tag is combined with --file the version file has been
+			// bumped and committed above, so the tag points at the bump commit.
+			if conf.Bump.GitTag {
+				if err := applyGitTag(curDir, newVersion, conf.Bump.TagMsg); err != nil {
+					return err
 				}
 
-				commitOutput, err := git.Commit(curDir, versionFile, conf.Bump.CommitMsg)
-				if err != nil {
-					log.Infof("git commit output: %s", commitOutput)
-
-					return fmt.Errorf("error git committing files: %w", err)
-				}
-
-				log.Infof("version file committed")
+				log.Infof("git tag %s added", newVersion)
 			}
 
 			return nil
@@ -119,12 +94,97 @@ The semantic version in the version file will be updated in place.`, shortDescri
 		)
 
 	cmd.Flags().
-		BoolVar(&flags.GitTag, "git-tag", false, "Use git tags rather than a version file.")
+		BoolVar(
+			&flags.GitTag,
+			"git-tag",
+			false,
+			"Use git tags rather than a version file. "+
+				"Combine with --file and --commit to bump the version file, commit it and tag the commit.",
+		)
 
 	cmd.Flags().
 		StringVar(&flags.TagMsg, "tag-msg", "", "Customise the tag message used when adding the version tag.")
 
 	return cmd
+}
+
+// ValidateBumpOpts checks the combination of bump options is valid.
+func ValidateBumpOpts(gitTag bool, versionFile string, commit bool) error {
+	if gitTag && versionFile != "" && !commit {
+		return ErrGitTagFileNoCommit
+	}
+
+	return nil
+}
+
+// bumpVersionFile finds the version file, bumps the version in it and
+// optionally commits the change, returning the new version.
+func bumpVersionFile(
+	curDir string,
+	args []string,
+	log logger.Basic,
+	conf config.Config,
+) (string, error) {
+	versionFileFinder := files.VersionFileFinder{
+		FileFlag:  flags.VersionFile,
+		Logger:    log,
+		SearchDir: curDir,
+	}
+
+	versionFile, err := versionFileFinder.Find()
+	if err != nil {
+		return "", fmt.Errorf("error finding version file: %w", err)
+	}
+
+	currentVersion, err := files.GetVersionFromFile(curDir, versionFile)
+	if err != nil {
+		return "", fmt.Errorf("error getting version from file: %w", err)
+	}
+
+	newVersion, err := getNewVersion(currentVersion, args)
+	if err != nil {
+		return "", err
+	}
+
+	if err := files.WriteVersionToFile(curDir, versionFile, newVersion); err != nil {
+		return "", fmt.Errorf("error writing version to file: %w", err)
+	}
+
+	log.Infof("version bumped from %s to %s", currentVersion, newVersion)
+
+	if conf.Bump.Commit {
+		addOutput, err := git.Add(curDir, versionFile)
+		if err != nil {
+			log.Infof("git add output: %s", addOutput)
+
+			return "", fmt.Errorf("error git adding files: %w", err)
+		}
+
+		commitOutput, err := git.Commit(curDir, versionFile, conf.Bump.CommitMsg)
+		if err != nil {
+			log.Infof("git commit output: %s", commitOutput)
+
+			return "", fmt.Errorf("error git committing files: %w", err)
+		}
+
+		log.Infof("version file committed")
+	}
+
+	return newVersion, nil
+}
+
+// applyGitTag adds the new version as an annotated git tag, defaulting the tag
+// message when one isn't provided.
+func applyGitTag(curDir string, newVersion string, tagMsg string) error {
+	if tagMsg == "" {
+		tagMsg = "Release " + newVersion
+	}
+
+	if err := git.AddTag(curDir, newVersion, tagMsg); err != nil {
+		return fmt.Errorf("error adding tag: %w", err)
+	}
+
+	return nil
 }
 
 func getNewVersion(currentVersion string, args []string) (string, error) {
@@ -167,12 +227,8 @@ func bumpGitTag(curDir string, args []string, log logger.Basic, tagMsg string) e
 		return err
 	}
 
-	if tagMsg == "" {
-		tagMsg = "Release " + newVersion
-	}
-
-	if err := git.AddTag(curDir, newVersion, tagMsg); err != nil {
-		return fmt.Errorf("error adding tag: %w", err)
+	if err := applyGitTag(curDir, newVersion, tagMsg); err != nil {
+		return err
 	}
 
 	log.Infof("git tag version bumped from %s to %s", currentVersion, newVersion)
