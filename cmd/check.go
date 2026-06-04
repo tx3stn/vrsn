@@ -15,7 +15,7 @@ import (
 
 // NewCmdCheck creates the check command.
 //
-//nolint:gocognit,cyclop,funlen
+//nolint:cyclop,funlen
 func NewCmdCheck() *cobra.Command {
 	shortDescription := "Check the semantic version has been correctly incremented."
 
@@ -48,35 +48,26 @@ func NewCmdCheck() *cobra.Command {
 
 			log.Debugf("current branch: %s", currentBranch)
 
-			versionFileFinder := files.VersionFileFinder{
-				ErrorOnNoFilesFound: false,
-				FileFlag:            flags.VersionFile,
-				Logger:              log,
-				SearchDir:           curDir,
-			}
-
-			versionFile, err := versionFileFinder.Find()
+			versionFiles, err := resolveVersionFiles(curDir, conf.Files, log, false)
 			if err != nil {
 				return fmt.Errorf("error locating version file: %w", err)
 			}
 
 			if flags.Now == "" {
-				if versionFile == "" {
+				if len(versionFiles) == 0 {
 					log.Info("no version files found in directory and no --now flag provided")
 
 					return ErrNoNowOrFile
 				}
 
-				log.Debugf("reading current version from %s", versionFile)
-
-				flags.Now, err = files.GetVersionFromFile(curDir, versionFile)
+				flags.Now, err = files.GetVersionsFromFiles(curDir, versionFiles, log)
 				if err != nil {
-					return fmt.Errorf("error reading version from file: %w", err)
+					return fmt.Errorf("error reading version from files: %w", err)
 				}
 			}
 
 			if flags.Was == "" {
-				if versionFile == "" {
+				if len(versionFiles) == 0 {
 					log.Info("no version files found in directory and no --was flag provided")
 
 					return ErrNoWasOrFile
@@ -90,24 +81,14 @@ func NewCmdCheck() *cobra.Command {
 					)
 				}
 
-				log.Debugf(
-					"reading previous version from %s on branch %s",
-					versionFile,
-					conf.Check.BaseBranch,
-				)
-
-				baseBranchVersion, err := git.VersionAtBranch(
+				flags.Was, err = getWasVersionFromFiles(
 					curDir,
 					conf.Check.BaseBranch,
-					versionFile,
+					versionFiles,
+					log,
 				)
 				if err != nil {
-					return fmt.Errorf("error getting version at branch: %w", err)
-				}
-
-				flags.Was, err = files.GetVersionFromString(versionFile, baseBranchVersion)
-				if err != nil {
-					return fmt.Errorf("error parsing the version from string: %w", err)
+					return err
 				}
 			}
 
@@ -146,6 +127,43 @@ read them from A N Y W H E R E.
 		StringVar(&flags.Now, "now", "", "The current semantic version (if passing for direct comparison).")
 
 	return cmd
+}
+
+// getWasVersionFromFiles reads the version each of the files contained at the
+// base branch and returns the common version they all had.
+// The version found in each file is debug logged, and if the versions do not
+// all match an ErrVersionsDoNotMatch error is returned.
+func getWasVersionFromFiles(
+	curDir string,
+	baseBranch string,
+	versionFiles []string,
+	log logger.Basic,
+) (string, error) {
+	versions := make([]string, 0, len(versionFiles))
+
+	for _, versionFile := range versionFiles {
+		baseBranchVersion, err := git.VersionAtBranch(curDir, baseBranch, versionFile)
+		if err != nil {
+			return "", fmt.Errorf("error getting version at branch: %w", err)
+		}
+
+		was, err := files.GetVersionFromString(versionFile, baseBranchVersion)
+		if err != nil {
+			return "", fmt.Errorf("error parsing the version from string: %w", err)
+		}
+
+		log.Debugf("file %s has version %s on branch %s", versionFile, was, baseBranch)
+
+		versions = append(versions, was)
+	}
+
+	for _, version := range versions {
+		if version != versions[0] {
+			return "", files.ErrVersionsDoNotMatch
+		}
+	}
+
+	return versions[0], nil
 }
 
 func validateAndCompare(log logger.Basic, was string, now string) error {

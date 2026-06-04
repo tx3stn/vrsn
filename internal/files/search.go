@@ -25,7 +25,7 @@ type VersionFileFinder struct {
 // Find returns the version file based on the config provided.
 func (v VersionFileFinder) Find() (string, error) {
 	if v.FileFlag != "" {
-		v.Logger.Debugf("using --file flag with file %s", v.FileFlag)
+		v.Logger.Debugf("using specified version file %s", v.FileFlag)
 
 		info, err := os.Stat(v.FileFlag)
 		// Handle not exists error first for better error output.

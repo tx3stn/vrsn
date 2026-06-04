@@ -13,8 +13,9 @@ const (
 	// ErrCantCompareVersionsOnBranch is the error when you are on the base branch and
 	// no '--was' flag was passed so there is nothing to compare.
 	ErrCantCompareVersionsOnBranch
-	// ErrGitTagFileNoCommit is the error when '--git-tag' and '--file' are combined
-	// but commit is disabled, so there is no version bump commit to tag.
+	// ErrGitTagFileNoCommit is the error when '--git-tag' is combined with
+	// version files (the '--file' flag or the 'files' config option) but
+	// commit is disabled, so there is no version bump commit to tag.
 	ErrGitTagFileNoCommit
 )
 
@@ -31,7 +32,8 @@ func (e Error) Error() string {
 		return "on base branch with no --was flag supplied, nothing to compare"
 
 	case ErrGitTagFileNoCommit:
-		return "cannot combine --git-tag with --file unless commit is enabled (the tag must point at the version bump commit)"
+		return "cannot combine --git-tag with version files unless commit is enabled " +
+			"(the tag must point at the version bump commit)"
 
 	default:
 		return "unknown error"

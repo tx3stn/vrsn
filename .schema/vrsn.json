@@ -5,6 +5,13 @@
 	"description": "configuration file to set default options for vrsn commands.",
 	"type": "object",
 	"properties": {
+		"files": {
+			"description": "List of version files to operate on, all of which must contain the same version. Takes precedence over the --file flag and applies to both the bump and check commands.",
+			"type": "array",
+			"items": {
+				"type": "string"
+			}
+		},
 		"verbose": {
 			"description": "If you want to show verbose output when running vrsn commands.",
 			"type": "boolean"
@@ -17,7 +24,7 @@
 					"type": "boolean"
 				},
 				"commit-msg": {
-					"description": "The commit message to use when the bump command commits the version file.",
+					"description": "The commit message to use when the bump command commits the version file. Supports Go template syntax with the {{.Version}} variable which resolves to the new version.",
 					"type": "string"
 				},
 				"git-tag": {
@@ -25,16 +32,11 @@
 					"type": "boolean"
 				},
 				"tag-msg": {
-					"description": "The message to use when adding the git tag.",
+					"description": "The message to use when adding the git tag. Supports Go template syntax with the {{.Version}} variable which resolves to the new version.",
 					"type": "string"
 				}
 			},
-			"required": [
-				"commit",
-				"commit-msg",
-				"git-tag",
-				"tag-msg"
-			],
+			"required": ["commit", "commit-msg", "git-tag", "tag-msg"],
 			"additionalProperties": false
 		},
 		"check": {
@@ -45,16 +47,10 @@
 					"type": "string"
 				}
 			},
-			"required": [
-				"base-branch"
-			],
+			"required": ["base-branch"],
 			"additionalProperties": false
 		}
 	},
-	"required": [
-		"verbose",
-		"bump",
-		"check"
-	],
+	"required": ["verbose", "bump", "check"],
 	"additionalProperties": false
 }

@@ -12,43 +12,55 @@ func TestValidateBumpOpts(t *testing.T) {
 
 	testCases := map[string]struct {
 		gitTag        bool
-		versionFile   string
+		versionFiles  []string
 		commit        bool
 		expectedError error
 	}{
 		"ReturnsNoErrorWhenNoOptionsSupplied": {
 			gitTag:        false,
-			versionFile:   "",
+			versionFiles:  nil,
 			commit:        false,
 			expectedError: nil,
 		},
 		"ReturnsNoErrorForGitTagOnly": {
 			gitTag:        true,
-			versionFile:   "",
+			versionFiles:  nil,
 			commit:        false,
 			expectedError: nil,
 		},
 		"ReturnsNoErrorForGitTagWithCommit": {
 			gitTag:        true,
-			versionFile:   "",
+			versionFiles:  nil,
 			commit:        true,
 			expectedError: nil,
 		},
 		"ReturnsNoErrorForFileOnly": {
 			gitTag:        false,
-			versionFile:   "VERSION",
+			versionFiles:  []string{"VERSION"},
 			commit:        false,
 			expectedError: nil,
 		},
 		"ReturnsNoErrorForGitTagWithFileAndCommit": {
 			gitTag:        true,
-			versionFile:   "VERSION",
+			versionFiles:  []string{"VERSION"},
+			commit:        true,
+			expectedError: nil,
+		},
+		"ReturnsNoErrorForGitTagWithMultipleFilesAndCommit": {
+			gitTag:        true,
+			versionFiles:  []string{"VERSION", "package.json"},
 			commit:        true,
 			expectedError: nil,
 		},
 		"ReturnsErrorForGitTagWithFileButNoCommit": {
 			gitTag:        true,
-			versionFile:   "VERSION",
+			versionFiles:  []string{"VERSION"},
+			commit:        false,
+			expectedError: cmd.ErrGitTagFileNoCommit,
+		},
+		"ReturnsErrorForGitTagWithMultipleFilesButNoCommit": {
+			gitTag:        true,
+			versionFiles:  []string{"VERSION", "package.json"},
 			commit:        false,
 			expectedError: cmd.ErrGitTagFileNoCommit,
 		},
@@ -60,7 +72,7 @@ func TestValidateBumpOpts(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
-			err := cmd.ValidateBumpOpts(tc.gitTag, tc.versionFile, tc.commit)
+			err := cmd.ValidateBumpOpts(tc.gitTag, tc.versionFiles, tc.commit)
 			require.ErrorIs(t, err, tc.expectedError)
 		})
 	}

@@ -11,6 +11,7 @@ import (
 	"github.com/tx3stn/vrsn/internal/git"
 	"github.com/tx3stn/vrsn/internal/logger"
 	"github.com/tx3stn/vrsn/internal/prompt"
+	"github.com/tx3stn/vrsn/internal/template"
 	"github.com/tx3stn/vrsn/internal/version"
 )
 
@@ -40,12 +41,12 @@ func NewCmdBump() *cobra.Command {
 			log.Debugf("config: %+v", conf)
 			log.Debugf("bump command args: %s", args)
 
-			err = ValidateBumpOpts(conf.Bump.GitTag, flags.VersionFile, conf.Bump.Commit)
+			err = ValidateBumpOpts(conf.Bump.GitTag, conf.Files, conf.Bump.Commit)
 			if err != nil {
 				return err
 			}
 
-			if conf.Bump.GitTag && flags.VersionFile == "" {
+			if conf.Bump.GitTag && len(conf.Files) == 0 {
 				return bumpGitTag(curDir, args, log, conf.Bump.TagMsg)
 			}
 
@@ -90,7 +91,8 @@ The semantic version in the version file will be updated in place.`, shortDescri
 			&flags.CommitMsg,
 			"commit-msg",
 			"bump version",
-			"Customise the commit message used when committing the version bump.",
+			"Customise the commit message used when committing the version bump. "+
+				"Supports Go template syntax with the {{.Version}} variable for the new version.",
 		)
 
 	cmd.Flags().
@@ -103,21 +105,27 @@ The semantic version in the version file will be updated in place.`, shortDescri
 		)
 
 	cmd.Flags().
-		StringVar(&flags.TagMsg, "tag-msg", "", "Customise the tag message used when adding the version tag.")
+		StringVar(
+			&flags.TagMsg,
+			"tag-msg",
+			"",
+			"Customise the tag message used when adding the version tag. "+
+				"Supports Go template syntax with the {{.Version}} variable for the new version.",
+		)
 
 	return cmd
 }
 
 // ValidateBumpOpts checks the combination of bump options is valid.
-func ValidateBumpOpts(gitTag bool, versionFile string, commit bool) error {
-	if gitTag && versionFile != "" && !commit {
+func ValidateBumpOpts(gitTag bool, versionFiles []string, commit bool) error {
+	if gitTag && len(versionFiles) > 0 && !commit {
 		return ErrGitTagFileNoCommit
 	}
 
 	return nil
 }
 
-// bumpVersionFile finds the version file, bumps the version in it and
+// bumpVersionFile finds the version files, bumps the version in them and
 // optionally commits the change, returning the new version.
 func bumpVersionFile(
 	curDir string,
@@ -125,20 +133,14 @@ func bumpVersionFile(
 	log logger.Basic,
 	conf config.Config,
 ) (string, error) {
-	versionFileFinder := files.VersionFileFinder{
-		FileFlag:  flags.VersionFile,
-		Logger:    log,
-		SearchDir: curDir,
+	versionFiles, err := resolveVersionFiles(curDir, conf.Files, log, true)
+	if err != nil {
+		return "", err
 	}
 
-	versionFile, err := versionFileFinder.Find()
+	currentVersion, err := files.GetVersionsFromFiles(curDir, versionFiles, log)
 	if err != nil {
-		return "", fmt.Errorf("error finding version file: %w", err)
-	}
-
-	currentVersion, err := files.GetVersionFromFile(curDir, versionFile)
-	if err != nil {
-		return "", fmt.Errorf("error getting version from file: %w", err)
+		return "", fmt.Errorf("error getting version from files: %w", err)
 	}
 
 	newVersion, err := getNewVersion(currentVersion, args)
@@ -146,31 +148,60 @@ func bumpVersionFile(
 		return "", err
 	}
 
-	if err := files.WriteVersionToFile(curDir, versionFile, newVersion); err != nil {
-		return "", fmt.Errorf("error writing version to file: %w", err)
+	// Render the commit message before writing so an invalid template errors
+	// before any files are changed.
+	commitMsg := ""
+	if conf.Bump.Commit {
+		commitMsg, err = template.Render(conf.Bump.CommitMsg, newVersion)
+		if err != nil {
+			return "", fmt.Errorf("error rendering commit message: %w", err)
+		}
+	}
+
+	for _, versionFile := range versionFiles {
+		if err := files.WriteVersionToFile(curDir, versionFile, newVersion); err != nil {
+			return "", fmt.Errorf("error writing version to file %s: %w", versionFile, err)
+		}
+
+		log.Debugf("bumped version in %s", versionFile)
 	}
 
 	log.Infof("version bumped from %s to %s", currentVersion, newVersion)
 
 	if conf.Bump.Commit {
-		addOutput, err := git.Add(curDir, versionFile)
-		if err != nil {
-			log.Infof("git add output: %s", addOutput)
-
-			return "", fmt.Errorf("error git adding files: %w", err)
+		if err := commitVersionFiles(curDir, versionFiles, commitMsg, log); err != nil {
+			return "", err
 		}
-
-		commitOutput, err := git.Commit(curDir, versionFile, conf.Bump.CommitMsg)
-		if err != nil {
-			log.Infof("git commit output: %s", commitOutput)
-
-			return "", fmt.Errorf("error git committing files: %w", err)
-		}
-
-		log.Infof("version file committed")
 	}
 
 	return newVersion, nil
+}
+
+// commitVersionFiles stages the bumped version files and commits them all in
+// a single commit.
+func commitVersionFiles(
+	curDir string,
+	versionFiles []string,
+	commitMsg string,
+	log logger.Basic,
+) error {
+	addOutput, err := git.Add(curDir, versionFiles...)
+	if err != nil {
+		log.Infof("git add output: %s", addOutput)
+
+		return fmt.Errorf("error git adding files: %w", err)
+	}
+
+	commitOutput, err := git.Commit(curDir, commitMsg, versionFiles...)
+	if err != nil {
+		log.Infof("git commit output: %s", commitOutput)
+
+		return fmt.Errorf("error git committing files: %w", err)
+	}
+
+	log.Infof("version file committed")
+
+	return nil
 }
 
 // applyGitTag adds the new version as an annotated git tag, defaulting the tag
@@ -180,7 +211,12 @@ func applyGitTag(curDir string, newVersion string, tagMsg string) error {
 		tagMsg = "Release " + newVersion
 	}
 
-	if err := git.AddTag(curDir, newVersion, tagMsg); err != nil {
+	renderedMsg, err := template.Render(tagMsg, newVersion)
+	if err != nil {
+		return fmt.Errorf("error rendering tag message: %w", err)
+	}
+
+	if err := git.AddTag(curDir, newVersion, renderedMsg); err != nil {
 		return fmt.Errorf("error adding tag: %w", err)
 	}
 
