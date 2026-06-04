@@ -40,6 +40,21 @@ var gradleMatcher = versionFileMatcher{
 	versionRegex:   tomlMatcher.versionRegex,
 }
 
+// bestEffortRegex matches toml style `version = X` lines with single, double
+// or no quotes.
+var bestEffortRegex = regexp.MustCompile(`(.*)(version\ *=\ *['"]?)(?P<semver>v*\d+.\d+.\d+)(.*)`)
+
+// bestEffortMatcher is the fallback for files explicitly provided with the
+// --file flag that don't match any of the supported version files.
+// Using the regex as the lineMatcher means a line only matches when the
+// version can actually be extracted from it.
+var bestEffortMatcher = versionFileMatcher{
+	lineMatcher:    bestEffortRegex.MatchString,
+	notFoundError:  ErrGettingVersionBestEffort,
+	singleLineFile: false,
+	versionRegex:   bestEffortRegex.String(),
+}
+
 // versionFileMatchers contains the utilies to extract and update the version
 // from the version file.
 func versionFileMatchers() map[string]versionFileMatcher {
@@ -86,17 +101,18 @@ func versionFileMatchers() map[string]versionFileMatcher {
 }
 
 // getVersionMatcher gets the relevant versionFileMatcher config for the
-// provided input file or errors if there is no config for a file with that name.
-func getVersionMatcher(inputFile string) (versionFileMatcher, error) {
+// provided input file, falling back to the best effort matcher if there is no
+// config for a file with that name.
+func getVersionMatcher(inputFile string) versionFileMatcher {
 	// Split dir and file to support relative paths provided with `--file` CLI flag.
 	_, file := filepath.Split(inputFile)
 
 	matcher, exists := versionFileMatchers()[file]
 	if !exists {
-		return versionFileMatcher{}, fmt.Errorf("%s %w", file, ErrUnsuportedFile)
+		return bestEffortMatcher
 	}
 
-	return matcher, nil
+	return matcher
 }
 
 //nolint:cyclop

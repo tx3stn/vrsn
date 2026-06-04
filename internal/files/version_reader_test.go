@@ -19,11 +19,35 @@ func TestGetVersionFromFile(t *testing.T) {
 		expectedError error
 		expected      string
 	}{
-		"ReturnsErrorForUnsupportedVersionFile": {
+		"ReturnsErrorWhenBestEffortMatchingFindsNoVersion": {
 			parentDir:     "all",
 			inputFile:     "foo.txt",
-			expectedError: files.ErrUnsuportedFile,
+			expectedError: files.ErrGettingVersionBestEffort,
 			expected:      "",
+		},
+		"ReturnsVersionFromSingleQuotedFileWithBestEffort": {
+			parentDir:     "all",
+			inputFile:     "version.ts",
+			expectedError: nil,
+			expected:      "0.0.10",
+		},
+		"ReturnsErrorFromInvalidBestEffortFile": {
+			parentDir:     "no-version",
+			inputFile:     "version.ts",
+			expectedError: files.ErrGettingVersionBestEffort,
+			expected:      "",
+		},
+		"ReturnsVersionFromDoubleQuotedFileWithBestEffort": {
+			parentDir:     "all",
+			inputFile:     "version.js",
+			expectedError: nil,
+			expected:      "1.5.0",
+		},
+		"ReturnsVersionFromUnquotedFileWithBestEffort": {
+			parentDir:     "all",
+			inputFile:     "app.conf",
+			expectedError: nil,
+			expected:      "0.3.2",
 		},
 		"ReturnsVersionFromBUILDBazel": {
 			parentDir:     "all",
@@ -207,6 +231,30 @@ func TestGetVersionFromString(t *testing.T) {
 			expectedError: files.ErrGettingVersionFromTOML,
 			expected:      "",
 		},
+		"ReturnsVersionFromSingleQuotedFileWithBestEffort": {
+			parentDir:     "all",
+			inputFile:     "version.ts",
+			expectedError: nil,
+			expected:      "0.0.10",
+		},
+		"ReturnsErrorFromInvalidBestEffortFile": {
+			parentDir:     "no-version",
+			inputFile:     "version.ts",
+			expectedError: files.ErrGettingVersionBestEffort,
+			expected:      "",
+		},
+		"ReturnsVersionFromDoubleQuotedFileWithBestEffort": {
+			parentDir:     "all",
+			inputFile:     "version.js",
+			expectedError: nil,
+			expected:      "1.5.0",
+		},
+		"ReturnsVersionFromUnquotedFileWithBestEffort": {
+			parentDir:     "all",
+			inputFile:     "app.conf",
+			expectedError: nil,
+			expected:      "0.3.2",
+		},
 		"ReturnsVersionFromPackageJSON": {
 			parentDir:     "all",
 			inputFile:     "package.json",
@@ -308,6 +356,12 @@ func TestGetVersionFromString(t *testing.T) {
 			inputFile:     "VERSION",
 			expectedError: nil,
 			expected:      "v6.6.5",
+		},
+		"ReturnsVersionWithPrefixFromBestEffortFile": {
+			parentDir:     "prefixed",
+			inputFile:     "version.ts",
+			expectedError: nil,
+			expected:      "v0.0.9",
 		},
 	}
 

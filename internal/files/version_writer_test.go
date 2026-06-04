@@ -19,11 +19,35 @@ func TestWriteVersionToFile(t *testing.T) {
 		newVersion    string
 		expectedError error
 	}{
-		"ReturnsErrorForUnsupportedVersionFile": {
+		"ReturnsErrorWhenBestEffortMatchingFindsNoVersion": {
 			parentDir:     "all",
 			inputFile:     "foo.txt",
 			newVersion:    "",
-			expectedError: files.ErrUnsuportedFile,
+			expectedError: files.ErrGettingVersionBestEffort,
+		},
+		"WritesVersionToSingleQuotedFileWithBestEffort": {
+			parentDir:     "all",
+			inputFile:     "version.ts",
+			newVersion:    "0.0.11",
+			expectedError: nil,
+		},
+		"ReturnsErrorForInvalidBestEffortFile": {
+			parentDir:     "no-version",
+			inputFile:     "version.ts",
+			newVersion:    "",
+			expectedError: files.ErrGettingVersionBestEffort,
+		},
+		"WritesVersionToDoubleQuotedFileWithBestEffort": {
+			parentDir:     "all",
+			inputFile:     "version.js",
+			newVersion:    "1.5.1",
+			expectedError: nil,
+		},
+		"WritesVersionToUnquotedFileWithBestEffort": {
+			parentDir:     "all",
+			inputFile:     "app.conf",
+			newVersion:    "0.3.3",
+			expectedError: nil,
 		},
 		"WritesVersionToBUILDBazel": {
 			parentDir:     "all",
@@ -161,6 +185,12 @@ func TestWriteVersionToFile(t *testing.T) {
 			parentDir:     "prefixed",
 			inputFile:     "VERSION",
 			newVersion:    "v6.6.6",
+			expectedError: nil,
+		},
+		"WritesPrefixedVersionToBestEffortFile": {
+			parentDir:     "prefixed",
+			inputFile:     "version.ts",
+			newVersion:    "v0.0.10",
 			expectedError: nil,
 		},
 	}

@@ -40,6 +40,17 @@ Currently supported version files:
 | `VERSION` | ![Go](https://img.shields.io/badge/go-%2300ADD8.svg?style=for-the-badge&logo=go&logoColor=white) + more |
 | `git tags` | ![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=fff) |
 
+Using a version file that isn't in the list? If you pass it explicitly with
+the `--file` flag, `vrsn` will attempt best effort matching: it looks for a
+string like `version = X` line, with single, double or no quotes. So a file
+like `version.ts` containing:
+
+```ts
+export const version = '0.0.10';
+```
+
+will work without any extra configuration.
+
 Don't see your favourite version file type in that list?
 See the [CONTRIBUTING guide](./.github/CONTRIBUTING.md) for how to (easily) add
 support!
@@ -202,7 +213,7 @@ vrsn bump --git-tag --tag-msg 'custom tag message'
 ### Accessible mode
 
 The `vrsn bump` command with no arguments will spawn an interactive picker.
-You can set an `ACCESSIBLE` environment variable which will drop the TUI interactive 
+You can set an `ACCESSIBLE` environment variable which will drop the TUI interactive
 selection in favour of a standard prompt that should work better with screen reader
 tools, e.g.:
 

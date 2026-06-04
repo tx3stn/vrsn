@@ -11,10 +11,7 @@ import (
 // WriteVersionToFile updates the version file with the provided new version
 // value.
 func WriteVersionToFile(dir string, inputFile string, newVersion string) error {
-	matcher, err := getVersionMatcher(inputFile)
-	if err != nil {
-		return err
-	}
+	matcher := getVersionMatcher(inputFile)
 
 	file, err := os.Open(filepath.Clean(filepath.Join(dir, inputFile)))
 	if err != nil {

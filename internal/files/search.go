@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"maps"
 	"os"
+	"path/filepath"
 	"slices"
 
 	"github.com/tx3stn/vrsn/internal/logger"
@@ -38,6 +39,13 @@ func (v VersionFileFinder) Find() (string, error) {
 
 		if info.IsDir() {
 			return "", fmt.Errorf("%w: file:%s", ErrFileIsDirectory, v.FileFlag)
+		}
+
+		if _, supported := versionFileMatchers()[filepath.Base(v.FileFlag)]; !supported {
+			v.Logger.Debugf(
+				"%s is not a natively supported version file, will attempt best effort matching",
+				v.FileFlag,
+			)
 		}
 
 		return v.FileFlag, nil
