@@ -231,6 +231,45 @@ and the new version is used for both the file and the tag. The `--commit`
 option is required so the tag has a version bump commit to point at, you'll
 get an error without it.
 
+### `get`
+
+Run `vrsn get` to print the current version.
+The version is printed on its own so it's easy to use in scripts, e.g.:
+
+```bash
+version=$(vrsn get)
+```
+
+By default the version is read using the same automatic version file detection
+as the other commands, and the usual flags let you read it from wherever you
+keep it.
+
+Use the `--file` flag to read the version from a specific file:
+
+```bash
+vrsn get --file './services/service-name/VERSION'
+```
+
+Use git tags rather than a version file? Pass the `--git-tag` flag to get the
+latest tag (setting `git-tag = true` in the `[bump]` section of your config
+file works too):
+
+```bash
+vrsn get --git-tag
+```
+
+If you have multiple `files` configured in your config file, the version found
+in each file is printed on a separate line:
+
+```text
+VERSION: 0.1.0
+package.json: 0.1.0
+```
+
+Unlike `check` and `bump`, mismatched versions are printed as-is without
+erroring, so you can use `vrsn get` to see what's in each file. Use
+`vrsn check` if you want to validate them.
+
 ### Accessible mode
 
 The `vrsn bump` command with no arguments will spawn an interactive picker.
