@@ -111,6 +111,31 @@ teardown() {
 	git reset "$(git rev-parse HEAD^1)"
 }
 
+@test "vrsn bump w. VERSION file: --commit-msg with template variable" {
+	git checkout -b "$test_branch"
+	run vrsn bump minor --commit --commit-msg 'release {{.Version}}'
+	assert_success
+	assert_line --index 0 'version bumped from 0.0.1 to 0.1.0'
+
+	new=$(head -n1 VERSION)
+	assert_equal "0.1.0" "$new"
+
+	run git --no-pager log --oneline -n 1
+	assert_success
+	assert_line --index 0 --partial "release 0.1.0"
+	git reset "$(git rev-parse HEAD^1)"
+}
+
+@test "vrsn bump w. VERSION file: invalid --commit-msg template" {
+	git checkout -b "$test_branch"
+	run vrsn bump minor --commit --commit-msg 'release {{.Version'
+	assert_failure
+	assert_output --partial 'error parsing message template'
+
+	new=$(head -n1 VERSION)
+	assert_equal "0.0.1" "$new"
+}
+
 @test "vrsn bump w. VERSION file: commit in config file" {
 	git checkout -b "$test_branch"
 

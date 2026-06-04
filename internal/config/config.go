@@ -15,6 +15,7 @@ type (
 	Config struct {
 		Bump    BumpOpts  `toml:"bump"`
 		Check   CheckOpts `toml:"check"`
+		Files   []string  `toml:"files"`
 		Verbose bool      `toml:"verbose"`
 	}
 
@@ -58,6 +59,7 @@ func Get(fileFlag string) (Config, error) {
 			Check: CheckOpts{
 				BaseBranch: flags.BaseBranch,
 			},
+			Files:   filesFromFlag(flags.VersionFile),
 			Verbose: flags.Verbose,
 		}, nil
 	}
@@ -72,16 +74,32 @@ func Get(fileFlag string) (Config, error) {
 		return Config{}, fmt.Errorf("error unmashalling config from file: %w", err)
 	}
 
+	// The files in the config file take precedence, but when none are
+	// configured the --file flag still applies.
+	if len(conf.Files) == 0 {
+		conf.Files = filesFromFlag(flags.VersionFile)
+	}
+
 	return conf, nil
+}
+
+// filesFromFlag converts the --file flag value into the config files list.
+func filesFromFlag(versionFile string) []string {
+	if versionFile == "" {
+		return nil
+	}
+
+	return []string{versionFile}
 }
 
 // FindConfigFile checks the expected paths for a vrsn config file and returns the
 // path to it if found.
 // The paths are checked in the order of precedence:
+//   - current directory (project level config)
 //   - XDG_CONFIG_DIR
 //   - HOME/.config
 func FindConfigFile() (string, error) {
-	paths := []string{}
+	paths := []string{"."}
 
 	if xdg, ok := os.LookupEnv("XDG_CONFIG_DIR"); ok {
 		paths = append(paths, xdg)
@@ -89,10 +107,6 @@ func FindConfigFile() (string, error) {
 
 	if home, ok := os.LookupEnv("HOME"); ok {
 		paths = append(paths, filepath.Join(home, ".config"))
-	}
-
-	if len(paths) == 0 {
-		return "", nil
 	}
 
 	configFileName := "vrsn.toml"

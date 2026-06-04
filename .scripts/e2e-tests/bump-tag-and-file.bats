@@ -75,7 +75,7 @@ teardown() {
 	git checkout -b "$test_branch"
 	run vrsn bump patch --git-tag --file=VERSION
 	assert_failure
-	assert_line --index 0 --partial 'cannot combine --git-tag with --file unless commit is enabled'
+	assert_line --index 0 --partial 'cannot combine --git-tag with version files unless commit is enabled'
 
 	new=$(head -n1 VERSION)
 	assert_equal "0.0.1" "$new"

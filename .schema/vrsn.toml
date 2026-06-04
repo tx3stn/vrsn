@@ -1,11 +1,12 @@
 #:schema ./vrsn.json
+files = ['VERSION', 'package.json']
 verbose = true
 
 [bump]
 commit = true
-commit-msg = 'custom commit message'
+commit-msg = 'bump version to {{.Version}}'
 git-tag = false
-tag-msg = 'custom git tag message'
+tag-msg = 'Release {{.Version}}'
 
 [check]
 base-branch = 'something-other-than-main'

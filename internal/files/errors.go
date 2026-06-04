@@ -38,6 +38,9 @@ const (
 	ErrFileNotFound
 	// ErrFileIsDirectory is the error returned when the specified version file is a directory.
 	ErrFileIsDirectory
+	// ErrVersionsDoNotMatch is the error returned when multiple version files
+	// contain different versions so a single bump cannot be applied.
+	ErrVersionsDoNotMatch
 )
 
 // Error returns the error string for the error enum.
@@ -83,6 +86,9 @@ func (e Error) Error() string {
 
 	case ErrFileIsDirectory:
 		return "file is a directory"
+
+	case ErrVersionsDoNotMatch:
+		return "version files do not contain matching versions, run with --verbose to see the version in each file"
 
 	default:
 		return "unknown error"

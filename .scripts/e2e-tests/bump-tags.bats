@@ -65,6 +65,21 @@ teardown() {
 	assert_line --index 0 --partial "$tag_msg"
 }
 
+@test "vrsn bump w. git tags: --tag-msg with template variable" {
+	git checkout -b "$test_branch"
+	echo "update" >>README.md
+	git add README.md
+	git commit -m "update"
+
+	run vrsn bump patch --git-tag --tag-msg='Release {{.Version}}'
+	assert_success
+	assert_line --index 0 'git tag version bumped from 0.0.1 to 0.0.2'
+
+	run git --no-pager tag --list --points-at HEAD -n1
+	assert_success
+	assert_line --index 0 --partial 'Release 0.0.2'
+}
+
 @test "vrsn bump w. git tags: in config file" {
 	git checkout -b "$test_branch"
 	echo "update" >>README.md

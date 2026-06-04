@@ -1,0 +1,11 @@
+files = ['VERSION', 'package.json']
+verbose = true
+
+[bump]
+commit = true
+commit-msg = 'bump to {{.Version}}'
+git-tag = false
+tag-msg = ''
+
+[check]
+base-branch = 'main'

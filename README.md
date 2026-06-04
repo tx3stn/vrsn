@@ -188,6 +188,14 @@ Don't like the default commit message? Provide your own custom one with
 vrsn bump minor --commit --commit-msg 'custom bump version commit message'
 ```
 
+Want the new version in your message? The `--commit-msg` and `--tag-msg`
+options support Go template syntax with a `{{.Version}}` variable that
+resolves to the version being bumped to, e.g.:
+
+```bash
+vrsn bump minor --commit --commit-msg 'bump version to {{.Version}}'
+```
+
 You can use the `--file` flag to point at a file that is not in the root of the
 git repo (like in a monorepo with independantly versioned services), e.g.:
 
@@ -239,12 +247,37 @@ ACCESSIBLE='true' vrsn bump
 ## Setting defaults in a config file
 
 If you always want `vrsn` to use specific flags, you can set default values for
-them in a config file at `$XDG_CONFIG_DIR/vrsn.toml` or `$HOME/.config/vrsn.toml`.
+them in a config file. The following locations are checked in order of
+precedence, and the first config file found is used:
+
+1. The file passed with the `--config` flag
+2. `vrsn.toml` in the current directory (project level config)
+3. `$XDG_CONFIG_DIR/vrsn.toml`
+4. `$HOME/.config/vrsn.toml`
+
+Note: config files are not merged, so a project level `vrsn.toml` replaces
+your global config entirely rather than overriding individual options.
 
 An example config file can be found at [./.schema/vrsn.toml](./.schema/vrsn.toml).
 
 Use this file to always `--commit` by default or to always use your own custom
 `--commit-msg`.
+
+The config file also supports a `files` option which works like the `--file`
+flag but accepts a list, so `bump` and `check` can operate on multiple version
+files that are kept in lockstep, e.g.:
+
+```toml
+files = ['VERSION', 'package.json']
+```
+
+All of the files must contain the same version, if they don't `vrsn` will
+error, and running with `--verbose` will log the version found in each file.
+When `files` is set in the config file it takes precedence over the `--file`
+flag.
+
+The `files` option is optional and best suited to a project level `vrsn.toml`,
+since the list of version files is specific to each repository.
 
 ## Running in Docker
 
