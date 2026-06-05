@@ -5,10 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"maps"
 	"os"
 	"path/filepath"
-	"slices"
 
 	"github.com/tx3stn/vrsn/internal/logger"
 )
@@ -25,30 +23,7 @@ type VersionFileFinder struct {
 // Find returns the version file based on the config provided.
 func (v VersionFileFinder) Find() (string, error) {
 	if v.FileFlag != "" {
-		v.Logger.Debugf("using specified version file %s", v.FileFlag)
-
-		info, err := os.Stat(v.FileFlag)
-		// Handle not exists error first for better error output.
-		if errors.Is(err, fs.ErrNotExist) {
-			return "", fmt.Errorf("%w: file:%s", ErrFileNotFound, v.FileFlag)
-		}
-
-		if err != nil {
-			return "", fmt.Errorf("error checking for file %s: %w", v.FileFlag, err)
-		}
-
-		if info.IsDir() {
-			return "", fmt.Errorf("%w: file:%s", ErrFileIsDirectory, v.FileFlag)
-		}
-
-		if _, supported := versionFileMatchers()[filepath.Base(v.FileFlag)]; !supported {
-			v.Logger.Debugf(
-				"%s is not a natively supported version file, will attempt best effort matching",
-				v.FileFlag,
-			)
-		}
-
-		return v.FileFlag, nil
+		return v.findFromFlag()
 	}
 
 	v.Logger.Debugf("looking for version files in %s", v.SearchDir)
@@ -60,17 +35,49 @@ func (v VersionFileFinder) Find() (string, error) {
 
 	v.Logger.Debugf("found version files: %v", allVersionFiles)
 
-	numberOfVersionFiles := len(allVersionFiles)
-
-	if numberOfVersionFiles == 1 {
+	switch len(allVersionFiles) {
+	case 1:
 		return allVersionFiles[0], nil
+
+	case 0:
+		if v.ErrorOnNoFilesFound {
+			return "", ErrNoVersionFilesInDir
+		}
+
+		return "", nil
+
+	default:
+		return "", ErrMultipleVersionFiles
+	}
+}
+
+// findFromFlag validates the version file explicitly provided with the --file
+// flag exists and returns it.
+func (v VersionFileFinder) findFromFlag() (string, error) {
+	v.Logger.Debugf("using specified version file %s", v.FileFlag)
+
+	info, err := os.Stat(v.FileFlag)
+	// Handle not exists error first for better error output.
+	if errors.Is(err, fs.ErrNotExist) {
+		return "", fmt.Errorf("%w: file:%s", ErrFileNotFound, v.FileFlag)
 	}
 
-	if numberOfVersionFiles == 0 && v.ErrorOnNoFilesFound {
-		return "", ErrNoVersionFilesInDir
+	if err != nil {
+		return "", fmt.Errorf("error checking for file %s: %w", v.FileFlag, err)
 	}
 
-	return "", ErrMultipleVersionFiles
+	if info.IsDir() {
+		return "", fmt.Errorf("%w: file:%s", ErrFileIsDirectory, v.FileFlag)
+	}
+
+	if _, supported := versionFileMatchers[filepath.Base(v.FileFlag)]; !supported {
+		v.Logger.Debugf(
+			"%s is not a natively supported version file, will attempt best effort matching",
+			v.FileFlag,
+		)
+	}
+
+	return v.FileFlag, nil
 }
 
 // GetVersionFilesInDirectory checks the provided directory for supported
@@ -82,8 +89,6 @@ func GetVersionFilesInDirectory(dir string) ([]string, error) {
 	}
 
 	versionFiles := []string{}
-	supportedFiles := versionFileMatchers()
-	supported := slices.AppendSeq(make([]string, 0, len(supportedFiles)), maps.Keys(supportedFiles))
 
 	for _, file := range allFiles {
 		if file.IsDir() {
@@ -91,7 +96,7 @@ func GetVersionFilesInDirectory(dir string) ([]string, error) {
 		}
 
 		name := file.Name()
-		if slices.Contains(supported, name) {
+		if _, supported := versionFileMatchers[name]; supported {
 			versionFiles = append(versionFiles, name)
 		}
 	}

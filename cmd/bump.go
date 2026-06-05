@@ -16,57 +16,12 @@ import (
 )
 
 // NewCmdBump creates the bump command.
-// TODO: split this out into smaller chunks and remove nolint.
-//
-//nolint:funlen
 func NewCmdBump() *cobra.Command {
 	shortDescription := "Increment the current semantic version with a valid patch, major or minor bump."
 
 	cmd := &cobra.Command{
-		Args: cobra.OnlyValidArgs,
-		RunE: func(ccmd *cobra.Command, args []string) error {
-			// TODO: support color option.
-			conf, err := config.Get(flags.ConfigFile)
-			if err != nil {
-				return fmt.Errorf("error getting config: %w", err)
-			}
-
-			log := logger.NewBasic(false, conf.Verbose)
-
-			curDir, err := os.Getwd()
-			if err != nil {
-				return fmt.Errorf("error getting current working directory: %w", err)
-			}
-
-			log.Debugf("config: %+v", conf)
-			log.Debugf("bump command args: %s", args)
-
-			err = ValidateBumpOpts(conf.Bump.GitTag, conf.Files, conf.Bump.Commit)
-			if err != nil {
-				return err
-			}
-
-			if conf.Bump.GitTag && len(conf.Files) == 0 {
-				return bumpGitTag(curDir, args, log, conf.Bump.TagMsg)
-			}
-
-			newVersion, err := bumpVersionFile(curDir, args, log, conf)
-			if err != nil {
-				return err
-			}
-
-			// When --git-tag is combined with --file the version file has been
-			// bumped and committed above, so the tag points at the bump commit.
-			if conf.Bump.GitTag {
-				if err := applyGitTag(curDir, newVersion, conf.Bump.TagMsg); err != nil {
-					return err
-				}
-
-				log.Infof("git tag %s added", newVersion)
-			}
-
-			return nil
-		},
+		Args: cobra.MatchAll(cobra.MaximumNArgs(1), cobra.OnlyValidArgs),
+		RunE: runBump,
 		//nolint:perfsprint
 		Long: fmt.Sprintf(`%s
 
@@ -114,6 +69,51 @@ The semantic version in the version file will be updated in place.`, shortDescri
 		)
 
 	return cmd
+}
+
+// runBump is the entrypoint for the bump command.
+func runBump(ccmd *cobra.Command, args []string) error {
+	// TODO: support color option.
+	conf, err := config.Get(flags.ConfigFile, ccmd.Flags())
+	if err != nil {
+		return fmt.Errorf("error getting config: %w", err)
+	}
+
+	log := logger.NewBasic(false, conf.Verbose)
+
+	curDir, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("error getting current working directory: %w", err)
+	}
+
+	log.Debugf("config: %+v", conf)
+	log.Debugf("bump command args: %s", args)
+
+	err = ValidateBumpOpts(conf.Bump.GitTag, conf.Files, conf.Bump.Commit)
+	if err != nil {
+		return err
+	}
+
+	if conf.Bump.GitTag && len(conf.Files) == 0 {
+		return bumpGitTag(curDir, args, log, conf.Bump.TagMsg)
+	}
+
+	newVersion, err := bumpVersionFile(curDir, args, log, conf)
+	if err != nil {
+		return err
+	}
+
+	// When --git-tag is combined with --file the version file has been
+	// bumped and committed above, so the tag points at the bump commit.
+	if conf.Bump.GitTag {
+		if err := applyGitTag(curDir, newVersion, conf.Bump.TagMsg); err != nil {
+			return err
+		}
+
+		log.Infof("git tag %s added", newVersion)
+	}
+
+	return nil
 }
 
 // ValidateBumpOpts checks the combination of bump options is valid.
@@ -224,27 +224,23 @@ func applyGitTag(curDir string, newVersion string, tagMsg string) error {
 }
 
 func getNewVersion(currentVersion string, args []string) (string, error) {
-	var newVersion string
-
-	var err error
-
 	if len(args) > 0 {
 		options, err := version.GetBumpOptions(currentVersion)
 		if err != nil {
 			return "", fmt.Errorf("error getting bump options: %w", err)
 		}
 
-		newVersion, err = options.SelectedIncrement(args[0])
+		newVersion, err := options.SelectedIncrement(args[0])
 		if err != nil {
 			return "", fmt.Errorf("error getting selected increment: %w", err)
 		}
-	} else {
-		bump := prompt.NewBumpSelector()
 
-		newVersion, err = bump.Select(currentVersion)
-		if err != nil {
-			return "", fmt.Errorf("error selecting bump type: %w", err)
-		}
+		return newVersion, nil
+	}
+
+	newVersion, err := prompt.NewBumpSelector().Select(currentVersion)
+	if err != nil {
+		return "", fmt.Errorf("error selecting bump type: %w", err)
 	}
 
 	return newVersion, nil

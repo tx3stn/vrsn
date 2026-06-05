@@ -20,7 +20,7 @@ func gitCommand(dir string, errMsg string, args ...string) (string, error) {
 	cmd.Stderr = &stdErr
 
 	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("%w: %s: %s", err, errMsg, stdErr.String())
+		return "", fmt.Errorf("%s: %w: %s", errMsg, err, stdErr.String())
 	}
 
 	return strings.Trim(stdOut.String(), "\n"), nil

@@ -10,6 +10,13 @@ import (
 	"github.com/tx3stn/vrsn/internal/flags"
 )
 
+// FlagChecker reports whether a flag was explicitly set on the command line.
+// *pflag.FlagSet (returned by cobra's cmd.Flags()) satisfies it without the
+// config package needing to depend on pflag directly.
+type FlagChecker interface {
+	Changed(name string) bool
+}
+
 type (
 	// Config represents the options available in the config file.
 	Config struct {
@@ -33,35 +40,38 @@ type (
 	}
 )
 
-// Get returns the config.
-func Get(fileFlag string) (Config, error) {
-	var file string
+// Get returns the effective config: values from a config file (if one is
+// found) layered over the CLI flag defaults, with any flags explicitly passed
+// on the command line taking precedence over the config file.
+// The one exception is the documented behaviour that `files` in the config
+// file takes precedence over the --file flag.
+func Get(fileFlag string, flagSet FlagChecker) (Config, error) {
+	conf := Config{
+		Bump: BumpOpts{
+			Commit:    flags.Commit,
+			CommitMsg: flags.CommitMsg,
+			GitTag:    flags.GitTag,
+			TagMsg:    flags.TagMsg,
+		},
+		Check: CheckOpts{
+			BaseBranch: flags.BaseBranch,
+		},
+		Files:   filesFromFlag(flags.VersionFile),
+		Verbose: flags.Verbose,
+	}
 
-	var err error
+	file := fileFlag
+	if file == "" {
+		var err error
 
-	if fileFlag == "" {
 		file, err = FindConfigFile()
 		if err != nil {
 			return Config{}, err
 		}
-	} else {
-		file = fileFlag
 	}
 
 	if file == "" {
-		return Config{
-			Bump: BumpOpts{
-				Commit:    flags.Commit,
-				CommitMsg: flags.CommitMsg,
-				GitTag:    flags.GitTag,
-				TagMsg:    flags.TagMsg,
-			},
-			Check: CheckOpts{
-				BaseBranch: flags.BaseBranch,
-			},
-			Files:   filesFromFlag(flags.VersionFile),
-			Verbose: flags.Verbose,
-		}, nil
+		return conf, nil
 	}
 
 	content, err := os.ReadFile(filepath.Clean(file))
@@ -69,18 +79,50 @@ func Get(fileFlag string) (Config, error) {
 		return Config{}, fmt.Errorf("error reading config file: %w", err)
 	}
 
-	var conf Config
+	// Unmarshalling over the flag based config means options missing from the
+	// config file keep the flag default, while `files` from the config file
+	// still replaces the --file flag value.
 	if err = toml.Unmarshal(content, &conf); err != nil {
-		return Config{}, fmt.Errorf("error unmashalling config from file: %w", err)
+		return Config{}, fmt.Errorf("error unmarshalling config from file: %w", err)
 	}
 
-	// The files in the config file take precedence, but when none are
-	// configured the --file flag still applies.
-	if len(conf.Files) == 0 {
-		conf.Files = filesFromFlag(flags.VersionFile)
-	}
+	applyChangedFlags(&conf, flagSet)
 
 	return conf, nil
+}
+
+// applyChangedFlags overrides config file values with any flags that were
+// explicitly set on the command line, so passing a flag always works
+// regardless of which config file is found.
+// Flags not registered on the current command report as unchanged.
+func applyChangedFlags(conf *Config, flagSet FlagChecker) {
+	if flagSet == nil {
+		return
+	}
+
+	if flagSet.Changed("commit") {
+		conf.Bump.Commit = flags.Commit
+	}
+
+	if flagSet.Changed("commit-msg") {
+		conf.Bump.CommitMsg = flags.CommitMsg
+	}
+
+	if flagSet.Changed("git-tag") {
+		conf.Bump.GitTag = flags.GitTag
+	}
+
+	if flagSet.Changed("tag-msg") {
+		conf.Bump.TagMsg = flags.TagMsg
+	}
+
+	if flagSet.Changed("base-branch") {
+		conf.Check.BaseBranch = flags.BaseBranch
+	}
+
+	if flagSet.Changed("verbose") {
+		conf.Verbose = flags.Verbose
+	}
 }
 
 // filesFromFlag converts the --file flag value into the config files list.
@@ -96,10 +138,15 @@ func filesFromFlag(versionFile string) []string {
 // path to it if found.
 // The paths are checked in the order of precedence:
 //   - current directory (project level config)
-//   - XDG_CONFIG_DIR
+//   - XDG_CONFIG_HOME (with XDG_CONFIG_DIR still supported for backwards
+//     compatibility)
 //   - HOME/.config
 func FindConfigFile() (string, error) {
 	paths := []string{"."}
+
+	if xdg, ok := os.LookupEnv("XDG_CONFIG_HOME"); ok {
+		paths = append(paths, xdg)
+	}
 
 	if xdg, ok := os.LookupEnv("XDG_CONFIG_DIR"); ok {
 		paths = append(paths, xdg)

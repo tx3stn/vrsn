@@ -9,15 +9,8 @@ import (
 )
 
 func main() {
-	code := 0
-
-	defer func() {
-		os.Exit(code)
-	}()
-
 	if err := cmd.Execute(); err != nil {
-		code = 1
-
-		fmt.Printf("%s\n", err.Error())
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 }

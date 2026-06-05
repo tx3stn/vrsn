@@ -14,86 +14,11 @@ import (
 )
 
 // NewCmdCheck creates the check command.
-//
-//nolint:cyclop,funlen
 func NewCmdCheck() *cobra.Command {
 	shortDescription := "Check the semantic version has been correctly incremented."
 
 	cmd := &cobra.Command{
-		RunE: func(ccmd *cobra.Command, args []string) error {
-			// TODO: support color option.
-			conf, err := config.Get(flags.ConfigFile)
-			if err != nil {
-				return fmt.Errorf("error getting config: %w", err)
-			}
-
-			log := logger.NewBasic(false, conf.Verbose)
-
-			curDir, err := os.Getwd()
-			if err != nil {
-				return fmt.Errorf("error getting current working directory: %w", err)
-			}
-
-			log.Debugf("config: %+v", conf)
-			log.Debugf("check command args: %s", args)
-
-			if flags.Was != "" && flags.Now != "" {
-				return validateAndCompare(log, flags.Was, flags.Now)
-			}
-
-			currentBranch, err := git.CurrentBranch(curDir)
-			if err != nil {
-				return fmt.Errorf("error getting current git branch: %w", err)
-			}
-
-			log.Debugf("current branch: %s", currentBranch)
-
-			versionFiles, err := resolveVersionFiles(curDir, conf.Files, log, false)
-			if err != nil {
-				return fmt.Errorf("error locating version file: %w", err)
-			}
-
-			if flags.Now == "" {
-				if len(versionFiles) == 0 {
-					log.Info("no version files found in directory and no --now flag provided")
-
-					return ErrNoNowOrFile
-				}
-
-				flags.Now, err = files.GetVersionsFromFiles(curDir, versionFiles, log)
-				if err != nil {
-					return fmt.Errorf("error reading version from files: %w", err)
-				}
-			}
-
-			if flags.Was == "" {
-				if len(versionFiles) == 0 {
-					log.Info("no version files found in directory and no --was flag provided")
-
-					return ErrNoWasOrFile
-				}
-
-				if currentBranch == conf.Check.BaseBranch {
-					return fmt.Errorf(
-						"%w: base branch: %s",
-						ErrCantCompareVersionsOnBranch,
-						conf.Check.BaseBranch,
-					)
-				}
-
-				flags.Was, err = getWasVersionFromFiles(
-					curDir,
-					conf.Check.BaseBranch,
-					versionFiles,
-					log,
-				)
-				if err != nil {
-					return err
-				}
-			}
-
-			return validateAndCompare(log, flags.Was, flags.Now)
-		},
+		RunE: runCheck,
 		//nolint:perfsprint
 		Long: fmt.Sprintf(`%s
 
@@ -123,10 +48,109 @@ read them from A N Y W H E R E.
 
 	cmd.Flags().
 		StringVar(&flags.Was, "was", "", "The previous semantic version (if passing for direct comparison).")
-	cmd.PersistentFlags().
+	cmd.Flags().
 		StringVar(&flags.Now, "now", "", "The current semantic version (if passing for direct comparison).")
 
 	return cmd
+}
+
+// runCheck is the entrypoint for the check command.
+func runCheck(ccmd *cobra.Command, args []string) error {
+	// TODO: support color option.
+	conf, err := config.Get(flags.ConfigFile, ccmd.Flags())
+	if err != nil {
+		return fmt.Errorf("error getting config: %w", err)
+	}
+
+	log := logger.NewBasic(false, conf.Verbose)
+
+	curDir, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("error getting current working directory: %w", err)
+	}
+
+	log.Debugf("config: %+v", conf)
+	log.Debugf("check command args: %s", args)
+
+	if flags.Was != "" && flags.Now != "" {
+		return validateAndCompare(log, flags.Was, flags.Now)
+	}
+
+	currentBranch, err := git.CurrentBranch(curDir)
+	if err != nil {
+		return fmt.Errorf("error getting current git branch: %w", err)
+	}
+
+	log.Debugf("current branch: %s", currentBranch)
+
+	versionFiles, err := resolveVersionFiles(curDir, conf.Files, log, false)
+	if err != nil {
+		return fmt.Errorf("error locating version file: %w", err)
+	}
+
+	now, err := resolveNowVersion(curDir, versionFiles, log)
+	if err != nil {
+		return err
+	}
+
+	was, err := resolveWasVersion(curDir, currentBranch, conf.Check.BaseBranch, versionFiles, log)
+	if err != nil {
+		return err
+	}
+
+	return validateAndCompare(log, was, now)
+}
+
+// resolveNowVersion returns the version provided with the --now flag, falling
+// back to the version in the version files when the flag isn't set.
+func resolveNowVersion(curDir string, versionFiles []string, log logger.Basic) (string, error) {
+	if flags.Now != "" {
+		return flags.Now, nil
+	}
+
+	if len(versionFiles) == 0 {
+		log.Info("no version files found in directory and no --now flag provided")
+
+		return "", ErrNoNowOrFile
+	}
+
+	now, err := files.GetVersionsFromFiles(curDir, versionFiles, log)
+	if err != nil {
+		return "", fmt.Errorf("error reading version from files: %w", err)
+	}
+
+	return now, nil
+}
+
+// resolveWasVersion returns the version provided with the --was flag, falling
+// back to the version the version files contained at the base branch when the
+// flag isn't set.
+func resolveWasVersion(
+	curDir string,
+	currentBranch string,
+	baseBranch string,
+	versionFiles []string,
+	log logger.Basic,
+) (string, error) {
+	if flags.Was != "" {
+		return flags.Was, nil
+	}
+
+	if len(versionFiles) == 0 {
+		log.Info("no version files found in directory and no --was flag provided")
+
+		return "", ErrNoWasOrFile
+	}
+
+	if currentBranch == baseBranch {
+		return "", fmt.Errorf(
+			"%w: base branch: %s",
+			ErrCantCompareVersionsOnBranch,
+			baseBranch,
+		)
+	}
+
+	return getWasVersionFromFiles(curDir, baseBranch, versionFiles, log)
 }
 
 // getWasVersionFromFiles reads the version each of the files contained at the
@@ -157,13 +181,8 @@ func getWasVersionFromFiles(
 		versions = append(versions, was)
 	}
 
-	for _, version := range versions {
-		if version != versions[0] {
-			return "", files.ErrVersionsDoNotMatch
-		}
-	}
-
-	return versions[0], nil
+	//nolint:wrapcheck
+	return files.CommonVersion(versions)
 }
 
 func validateAndCompare(log logger.Basic, was string, now string) error {

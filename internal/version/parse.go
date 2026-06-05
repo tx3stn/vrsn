@@ -34,25 +34,24 @@ func Parse(version string) (SemVer, error) {
 
 	pre := ""
 
-	majorPart := parts[0]
-	if majorPart[0:1] == prefix {
-		majorPart = parts[0][1:]
+	if majorPart, found := strings.CutPrefix(parts[0], prefix); found {
+		parts[0] = majorPart
 		pre = prefix
 	}
 
-	major, err := strconv.Atoi(majorPart)
+	major, err := parsePart(parts[0], "major")
 	if err != nil {
-		return SemVer{}, fmt.Errorf("%w: major version :%w", ErrConvertingToInt, err)
+		return SemVer{}, err
 	}
 
-	minor, err := strconv.Atoi(parts[1])
+	minor, err := parsePart(parts[1], "minor")
 	if err != nil {
-		return SemVer{}, fmt.Errorf("%w: minor version :%w", ErrConvertingToInt, err)
+		return SemVer{}, err
 	}
 
-	patch, err := strconv.Atoi(parts[2])
+	patch, err := parsePart(parts[2], "patch")
 	if err != nil {
-		return SemVer{}, fmt.Errorf("%w: patch version :%w", ErrConvertingToInt, err)
+		return SemVer{}, err
 	}
 
 	return SemVer{
@@ -61,6 +60,21 @@ func Parse(version string) (SemVer, error) {
 		Patch:  patch,
 		Prefix: pre,
 	}, nil
+}
+
+// parsePart converts a single version part to an int, rejecting anything
+// that isn't a non-negative number.
+func parsePart(part string, name string) (int, error) {
+	num, err := strconv.Atoi(part)
+	if err != nil {
+		return 0, fmt.Errorf("%w: %s version: %w", ErrConvertingToInt, name, err)
+	}
+
+	if num < 0 {
+		return 0, fmt.Errorf("%w: %s version: negative number", ErrConvertingToInt, name)
+	}
+
+	return num, nil
 }
 
 // MajorBump increments the major version by 1.
@@ -81,7 +95,7 @@ func (s *SemVer) PatchBump() {
 	s.Patch++
 }
 
-// ToString returns the string representation of a SemVer struct.
-func (s *SemVer) ToString() string {
+// String returns the string representation of a SemVer struct.
+func (s *SemVer) String() string {
 	return fmt.Sprintf("%s%d.%d.%d", s.Prefix, s.Major, s.Minor, s.Patch)
 }

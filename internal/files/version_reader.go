@@ -1,9 +1,8 @@
 package files
 
 import (
-	"bufio"
 	"fmt"
-	"log"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,42 +11,40 @@ import (
 // GetVersionFromFile reads the version file and returns the semantic
 // version contained.
 func GetVersionFromFile(dir string, inputFile string) (string, error) {
-	matcher := getVersionMatcher(inputFile)
-
-	file, err := os.Open(filepath.Clean(filepath.Join(dir, inputFile)))
+	file, err := os.Open(filepath.Clean(versionFilePath(dir, inputFile)))
 	if err != nil {
 		return "", fmt.Errorf("error opening version file: %w", err)
 	}
 
+	// The file is only read so a close error can't affect the result.
 	defer func() {
-		if err := file.Close(); err != nil {
-			log.Fatalf("error closing file: %s", inputFile)
-		}
+		_ = file.Close()
 	}()
 
-	scanner := bufio.NewScanner(file)
-
-	version, err := matcher.getVersion(scanner)
-	if err != nil {
-		return "", err
-	}
-
-	return version, nil
+	return getVersionFromReader(inputFile, file)
 }
 
-// GetVersionFromString handles extracting the version from an file that has
+// GetVersionFromString handles extracting the version from a file that has
 // already been read and is passed as a string such as when getting the
 // contents of a file from a git branch.
 func GetVersionFromString(fileName string, input string) (string, error) {
+	return getVersionFromReader(fileName, strings.NewReader(input))
+}
+
+// getVersionFromReader extracts the version from the reader using the
+// matcher config for the provided file name.
+func getVersionFromReader(fileName string, reader io.Reader) (string, error) {
 	matcher := getVersionMatcher(fileName)
 
-	reader := strings.NewReader(input)
-	scanner := bufio.NewScanner(reader)
+	return matcher.getVersion(newScanner(reader))
+}
 
-	version, err := matcher.getVersion(scanner)
-	if err != nil {
-		return "", err
+// versionFilePath resolves the path to the version file, supporting absolute
+// paths provided with the --file flag.
+func versionFilePath(dir string, inputFile string) string {
+	if filepath.IsAbs(inputFile) {
+		return inputFile
 	}
 
-	return version, nil
+	return filepath.Join(dir, inputFile)
 }

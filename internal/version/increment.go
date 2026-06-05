@@ -30,9 +30,9 @@ func GetBumpOptions(inputVersion string) (BumpOptions, error) {
 	patch.PatchBump()
 
 	return BumpOptions{
-		Patch: patch.ToString(),
-		Minor: minor.ToString(),
-		Major: major.ToString(),
+		Patch: patch.String(),
+		Minor: minor.String(),
+		Major: major.String(),
 	}, nil
 }
 

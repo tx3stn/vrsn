@@ -1,0 +1,8 @@
+[tool.poetry]
+name = "with-deps"
+version = "1.2.3"
+description = "testing dependency versions are not clobbered"
+
+[tool.poetry.dependencies]
+python = "3.11.4"
+requests = { version = "2.32.3" }

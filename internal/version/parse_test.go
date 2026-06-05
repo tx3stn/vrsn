@@ -50,6 +50,41 @@ func TestParse(t *testing.T) {
 			expectedError: version.ErrConvertingToInt,
 			expected:      version.SemVer{},
 		},
+		"ReturnsVersionStructForPrefixedInput": {
+			input:         "v1.2.3",
+			expectedError: nil,
+			expected: version.SemVer{
+				Major:  1,
+				Minor:  2,
+				Patch:  3,
+				Prefix: "v",
+			},
+		},
+		"ReturnsErrorForEmptyInput": {
+			input:         "",
+			expectedError: version.ErrNoVersionParts,
+			expected:      version.SemVer{},
+		},
+		"ReturnsErrorForOnlySeparators": {
+			input:         "..",
+			expectedError: version.ErrConvertingToInt,
+			expected:      version.SemVer{},
+		},
+		"ReturnsErrorForEmptyMajorPart": {
+			input:         ".1.2",
+			expectedError: version.ErrConvertingToInt,
+			expected:      version.SemVer{},
+		},
+		"ReturnsErrorForPrefixOnlyMajorPart": {
+			input:         "v.1.2",
+			expectedError: version.ErrConvertingToInt,
+			expected:      version.SemVer{},
+		},
+		"ReturnsErrorForNegativeVersionPart": {
+			input:         "1.-2.3",
+			expectedError: version.ErrConvertingToInt,
+			expected:      version.SemVer{},
+		},
 	}
 
 	for name, testCase := range testCases {

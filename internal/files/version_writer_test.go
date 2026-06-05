@@ -215,6 +215,94 @@ func TestWriteVersionToFile(t *testing.T) {
 	}
 }
 
+// TestWriteVersionToFileOnlyUpdatesFirstMatch is the regression test for
+// files where other version strings appear after the package version, such as
+// dependency constraints, which must not be rewritten by a bump.
+func TestWriteVersionToFileOnlyUpdatesFirstMatch(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		inputFile        string
+		expectedContents string
+	}{
+		"OnlyUpdatesPackageVersionInCargoTOML": {
+			inputFile: "Cargo.toml",
+			expectedContents: `[package]
+name = "with-deps"
+version = "2.0.0"
+authors = ["me"]
+license = "GPL-3.0"
+
+[dependencies]
+tokio = { version = "1.38.2", features = ["full"] }
+serde = { version = "1.0.219" }
+`,
+		},
+		"OnlyUpdatesPackageVersionInPyProjectTOML": {
+			inputFile: "pyproject.toml",
+			expectedContents: `[tool.poetry]
+name = "with-deps"
+version = "2.0.0"
+description = "testing dependency versions are not clobbered"
+
+[tool.poetry.dependencies]
+python = "3.11.4"
+requests = { version = "2.32.3" }
+`,
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			tmpDir := copyTestFile(t, "with-deps", tc.inputFile)
+			err := files.WriteVersionToFile(tmpDir, tc.inputFile, "2.0.0")
+			require.NoError(t, err)
+
+			// #nosec G304 -- reading a test fixture from the temp dir.
+			actual, err := os.ReadFile(filepath.Join(tmpDir, tc.inputFile))
+			require.NoError(t, err)
+
+			assert.Equal(t, tc.expectedContents, string(actual))
+		})
+	}
+}
+
+// TestWriteVersionToFilePreservesPermissions checks the original file mode
+// survives the temp file replacing the version file.
+func TestWriteVersionToFilePreservesPermissions(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := copyTestFile(t, "all", "VERSION")
+	path := filepath.Join(tmpDir, "VERSION")
+	// #nosec G302 -- a non default mode is the point of this test.
+	require.NoError(t, os.Chmod(path, 0o644))
+
+	err := files.WriteVersionToFile(tmpDir, "VERSION", "1.2.3")
+	require.NoError(t, err)
+
+	info, err := os.Stat(path)
+	require.NoError(t, err)
+	assert.Equal(t, os.FileMode(0o644), info.Mode().Perm())
+}
+
+// TestWriteVersionToFileWithAbsolutePath checks absolute file paths are used
+// as is rather than being joined to the current directory.
+func TestWriteVersionToFileWithAbsolutePath(t *testing.T) {
+	t.Parallel()
+
+	tmpDir := copyTestFile(t, "all", "VERSION")
+	absPath := filepath.Join(tmpDir, "VERSION")
+
+	err := files.WriteVersionToFile("/some/other/dir", absPath, "4.5.6")
+	require.NoError(t, err)
+
+	actual, err := files.GetVersionFromFile("/another/dir", absPath)
+	require.NoError(t, err)
+	assert.Equal(t, "4.5.6", actual)
+}
+
 func copyTestFile(t *testing.T, parentDir, filename string) string {
 	t.Helper()
 

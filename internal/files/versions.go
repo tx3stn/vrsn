@@ -28,6 +28,12 @@ func GetVersionsFromFiles(dir string, versionFiles []string, log logger.Basic) (
 		versions = append(versions, version)
 	}
 
+	return CommonVersion(versions)
+}
+
+// CommonVersion returns the version shared by all of the provided versions,
+// or an ErrVersionsDoNotMatch error when they aren't all the same.
+func CommonVersion(versions []string) (string, error) {
 	for _, version := range versions {
 		if version != versions[0] {
 			return "", ErrVersionsDoNotMatch
