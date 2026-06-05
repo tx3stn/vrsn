@@ -5,7 +5,7 @@ type Error uint
 
 const (
 	// ErrNoVersionFilesInDir is the error when no version files are found.
-	ErrNoVersionFilesInDir Error = iota
+	ErrNoVersionFilesInDir Error = iota + 1
 	// ErrMultipleVersionFiles is the error when there are multiple valid version
 	// file types found in a directory.
 	ErrMultipleVersionFiles

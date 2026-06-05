@@ -5,10 +5,10 @@ type Error uint
 
 const (
 	// ErrNoValues is the error when both was or now are not supplied.
-	ErrNoValues Error = iota
+	ErrNoValues Error = iota + 1
 	// ErrNoNowValue is the error when no --now value is supplied.
 	ErrNoNowValue
-	// ErrNoWasValue is the error when no --was value iss supplied.
+	// ErrNoWasValue is the error when no --was value is supplied.
 	ErrNoWasValue
 )
 

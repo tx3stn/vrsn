@@ -19,6 +19,7 @@
 - [Setting defaults in a config file](#setting-defaults-in-a-config-file)
 - [Running in Docker](#running-in-docker)
 - [CI usage examples](#ci-usage-examples)
+- [Limitations](#limitations)
 
 ## Why?
 
@@ -291,11 +292,15 @@ precedence, and the first config file found is used:
 
 1. The file passed with the `--config` flag
 2. `vrsn.toml` in the current directory (project level config)
-3. `$XDG_CONFIG_DIR/vrsn.toml`
+3. `$XDG_CONFIG_HOME/vrsn.toml` (`$XDG_CONFIG_DIR` is also still supported)
 4. `$HOME/.config/vrsn.toml`
 
 Note: config files are not merged, so a project level `vrsn.toml` replaces
 your global config entirely rather than overriding individual options.
+
+Flags passed on the command line always take precedence over the values in
+the config file, and any options missing from the config file fall back to
+the flag defaults.
 
 An example config file can be found at [./.schema/vrsn.toml](./.schema/vrsn.toml).
 
@@ -356,3 +361,11 @@ workflows:
            only:
              - /^dependabot\/.*/
 ```
+
+## Limitations
+
+- Pre-release and build metadata versions (e.g. `1.2.3-rc.1`, `1.2.3+build.4`)
+  are not currently supported, versions must be plain `major.minor.patch`
+  (with an optional `v` prefix).
+- When bumping multiple `files` in lockstep there is no rollback if updating
+  one of the later files fails, any files already bumped stay bumped.

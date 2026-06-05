@@ -1,0 +1,9 @@
+[package]
+name = "with-deps"
+version = "1.2.3"
+authors = ["me"]
+license = "GPL-3.0"
+
+[dependencies]
+tokio = { version = "1.38.2", features = ["full"] }
+serde = { version = "1.0.219" }

@@ -2,7 +2,10 @@
 // and a verbose mode, and maybe some color in future.
 package logger
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+)
 
 // Basic is a basic logger to provide the simple functionality to allow people
 // to run vrsn in verbose mode and disable/enable color support.
@@ -21,10 +24,11 @@ func NewBasic(color bool, verbose bool) Basic {
 
 // Debug is a log that will only be displayed if the `vrsn` command is run in
 // verbose mode.
+// Debug logs are written to stderr so they don't pollute output that is
+// captured in scripts, e.g. version=$(vrsn get --verbose).
 func (b Basic) Debug(msg string) {
 	if b.Verbose {
-		//nolint:forbidigo
-		fmt.Println(msg)
+		fmt.Fprintln(os.Stderr, msg)
 	}
 }
 
