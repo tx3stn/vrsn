@@ -61,6 +61,12 @@ func TestGetVersionFromFile(t *testing.T) {
 			expectedError: files.ErrGettingVersionFromBuildBazel,
 			expected:      "",
 		},
+		"ReturnsErrorFromInvalidBazelModule": {
+			parentDir:     "no-version",
+			inputFile:     "MODULE.bazel",
+			expectedError: files.ErrGettingVersionFromBazelModule,
+			expected:      "",
+		},
 		"ReturnsVersionFromBuildGradle": {
 			parentDir:     "all",
 			inputFile:     "build.gradle",
@@ -193,6 +199,12 @@ func TestGetVersionFromString(t *testing.T) {
 			parentDir:     "no-version",
 			inputFile:     "BUILD.bazel",
 			expectedError: files.ErrGettingVersionFromBuildBazel,
+			expected:      "",
+		},
+		"ReturnsErrorFromInvalidBazelModule": {
+			parentDir:     "no-version",
+			inputFile:     "MODULE.bazel",
+			expectedError: files.ErrGettingVersionFromBazelModule,
 			expected:      "",
 		},
 		"ReturnsVersionFromBuildGradle": {

@@ -1,0 +1,4 @@
+module(
+    name = "vrsn",
+    version = "0.0.23",
+)
