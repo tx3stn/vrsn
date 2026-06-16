@@ -41,6 +41,9 @@ const (
 	// ErrVersionsDoNotMatch is the error returned when multiple version files
 	// contain different versions so a single bump cannot be applied.
 	ErrVersionsDoNotMatch
+	// ErrGettingVersionFromBazelModule is the error when a version attribute can't
+	// be found inside a MODULE.bazel file.
+	ErrGettingVersionFromBazelModule
 )
 
 // Error returns the error string for the error enum.
@@ -89,6 +92,9 @@ func (e Error) Error() string {
 
 	case ErrVersionsDoNotMatch:
 		return "version files do not contain matching versions, run with --verbose to see the version in each file"
+
+	case ErrGettingVersionFromBazelModule:
+		return "unable to read version from MODULE.bazel"
 
 	default:
 		return "unknown error"

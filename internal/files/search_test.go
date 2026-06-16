@@ -104,6 +104,7 @@ func TestGetVersionFilesInDirectory(t *testing.T) {
 				"build.gradle.kts",
 				"Cargo.toml",
 				"CMakeLists.txt",
+				"MODULE.bazel",
 				"package.json",
 				"pyproject.toml",
 				"setup.py",

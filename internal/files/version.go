@@ -48,6 +48,13 @@ var bazelMatcher = versionFileMatcher{
 	versionRegex:   tomlMatcher.versionRegex,
 }
 
+var bazelModMatcher = versionFileMatcher{
+	lineMatcher:    tomlMatcher.lineMatcher,
+	notFoundError:  ErrGettingVersionFromBazelModule,
+	singleLineFile: false,
+	versionRegex:   tomlMatcher.versionRegex,
+}
+
 // not toml files, but version string is same format.
 var gradleMatcher = versionFileMatcher{
 	lineMatcher:    tomlMatcher.lineMatcher,
@@ -75,6 +82,7 @@ var bestEffortMatcher = versionFileMatcher{
 // version from each supported version file.
 var versionFileMatchers = map[string]versionFileMatcher{
 	"BUILD.bazel":      bazelMatcher,
+	"MODULE.bazel":     bazelModMatcher,
 	"build.gradle":     gradleMatcher,
 	"build.gradle.kts": gradleMatcher,
 	"Cargo.toml":       tomlMatcher,

@@ -61,6 +61,18 @@ func TestWriteVersionToFile(t *testing.T) {
 			newVersion:    "",
 			expectedError: files.ErrGettingVersionFromBuildBazel,
 		},
+		"WritesVersionToBazelModule": {
+			parentDir:     "all",
+			inputFile:     "MODULE.bazel",
+			newVersion:    "0.0.24",
+			expectedError: nil,
+		},
+		"ReturnsErrorForInvalidBazelModule": {
+			parentDir:     "no-version",
+			inputFile:     "MODULE.bazel",
+			newVersion:    "",
+			expectedError: files.ErrGettingVersionFromBazelModule,
+		},
 		"WritesVersionToBuildGradle": {
 			parentDir:     "all",
 			inputFile:     "build.gradle",

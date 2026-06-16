@@ -31,7 +31,7 @@ Currently supported version files:
 
 | File | Languages |
 | --- | --- |
-| `BUILD.bazel` | ![Bazel](https://img.shields.io/badge/bazel-%2343A047.svg?style=for-the-badge&logo=bazel&logoColor=white) |
+| `BUILD.bazel`, `MODULE.bazel` | ![Bazel](https://img.shields.io/badge/bazel-%2343A047.svg?style=for-the-badge&logo=bazel&logoColor=white) |
 | `build.gradle`, `build.gradle.kts` | ![Java](https://img.shields.io/badge/java-%23ED8B00.svg?style=for-the-badge&logo=java&logoColor=white) ![Kotlin](https://img.shields.io/badge/kotlin-%237F52FF.svg?style=for-the-badge&logo=kotlin&logoColor=white) |
 | `Cargo.toml` | ![Rust](https://img.shields.io/badge/rust-%23000000.svg?style=for-the-badge&logo=rust&logoColor=white) |
 | `CMakeLists.txt` | ![C++](https://img.shields.io/badge/c++-%2300599C.svg?style=for-the-badge&logo=c%2B%2B&logoColor=white) |
