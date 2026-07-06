@@ -2,6 +2,9 @@
 package flags
 
 var (
+	// AndroidVersionCode is the variable for the CLI flag `--android-version-code`
+	// used to also bump android:versionCode when bumping an AndroidManifest file.
+	AndroidVersionCode bool
 	// BaseBranch is the variable for the CLI flag `--base-branch` so you can set
 	// your git base branch if it's anything other than `main`.
 	BaseBranch string

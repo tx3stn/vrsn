@@ -7,6 +7,7 @@ commit = true
 commit-msg = 'bump version to {{.Version}}'
 git-tag = false
 tag-msg = 'Release {{.Version}}'
+android-version-code = false
 
 [check]
 base-branch = 'something-other-than-main'

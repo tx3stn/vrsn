@@ -31,6 +31,7 @@ Currently supported version files:
 
 | File | Languages |
 | --- | --- |
+| `AndroidManifest*.xml` (e.g. `AndroidManifest.dev.xml`, `AndroidManifest.prod.xml`) | ![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white) |
 | `BUILD.bazel`, `MODULE.bazel` | ![Bazel](https://img.shields.io/badge/bazel-%2343A047.svg?style=for-the-badge&logo=bazel&logoColor=white) |
 | `build.gradle`, `build.gradle.kts` | ![Java](https://img.shields.io/badge/java-%23ED8B00.svg?style=for-the-badge&logo=java&logoColor=white) ![Kotlin](https://img.shields.io/badge/kotlin-%237F52FF.svg?style=for-the-badge&logo=kotlin&logoColor=white) |
 | `Cargo.toml` | ![Rust](https://img.shields.io/badge/rust-%23000000.svg?style=for-the-badge&logo=rust&logoColor=white) |
@@ -212,6 +213,18 @@ write a script to iterate over each service that needs bumping and use the
 find ./services -type f -name 'VERSION' -exec vrsn bump patch --file {} \
 ```
 
+Bumping an `AndroidManifest.xml`? By default only `android:versionName` is
+updated. Pass `--android-version-code` to also bump `android:versionCode`,
+derived from the new version as `MAJOR*10000 + MINOR*100 + PATCH` (so `1.3.0`
+becomes `10300`). e.g.:
+
+```bash
+vrsn bump minor --file AndroidManifest.xml --android-version-code
+```
+
+`vrsn` errors without writing anything if the manifest has no
+`android:versionCode` attribute to update.
+
 Use git tags rather than a version file? Pass the `--git-tag` flag to read from
 the existing tags and write a new tag. e.g.:
 
@@ -369,3 +382,7 @@ workflows:
   (with an optional `v` prefix).
 - When bumping multiple `files` in lockstep there is no rollback if updating
   one of the later files fails, any files already bumped stay bumped.
+- The `--android-version-code` scheme (`MAJOR*10000 + MINOR*100 + PATCH`)
+  reserves two digits each for the minor and patch parts, so it assumes both
+  stay below 100. Only `android:versionName` is read back by `get`/`check`;
+  `android:versionCode` is derived and written during a bump.

@@ -28,10 +28,11 @@ type (
 
 	// BumpOpts are the vrsn bump specific options in the config file.
 	BumpOpts struct {
-		Commit    bool   `toml:"commit"`
-		CommitMsg string `toml:"commit-msg"`
-		GitTag    bool   `toml:"git-tag"`
-		TagMsg    string `toml:"tag-msg"`
+		AndroidVersionCode bool   `toml:"android-version-code"`
+		Commit             bool   `toml:"commit"`
+		CommitMsg          string `toml:"commit-msg"`
+		GitTag             bool   `toml:"git-tag"`
+		TagMsg             string `toml:"tag-msg"`
 	}
 
 	// CheckOpts are the vrsn check specific options in the config file.
@@ -48,10 +49,11 @@ type (
 func Get(fileFlag string, flagSet FlagChecker) (Config, error) {
 	conf := Config{
 		Bump: BumpOpts{
-			Commit:    flags.Commit,
-			CommitMsg: flags.CommitMsg,
-			GitTag:    flags.GitTag,
-			TagMsg:    flags.TagMsg,
+			AndroidVersionCode: flags.AndroidVersionCode,
+			Commit:             flags.Commit,
+			CommitMsg:          flags.CommitMsg,
+			GitTag:             flags.GitTag,
+			TagMsg:             flags.TagMsg,
 		},
 		Check: CheckOpts{
 			BaseBranch: flags.BaseBranch,
@@ -98,6 +100,10 @@ func Get(fileFlag string, flagSet FlagChecker) (Config, error) {
 func applyChangedFlags(conf *Config, flagSet FlagChecker) {
 	if flagSet == nil {
 		return
+	}
+
+	if flagSet.Changed("android-version-code") {
+		conf.Bump.AndroidVersionCode = flags.AndroidVersionCode
 	}
 
 	if flagSet.Changed("commit") {

@@ -70,7 +70,7 @@ func (v VersionFileFinder) findFromFlag() (string, error) {
 		return "", fmt.Errorf("%w: file:%s", ErrFileIsDirectory, v.FileFlag)
 	}
 
-	if _, supported := versionFileMatchers[filepath.Base(v.FileFlag)]; !supported {
+	if _, supported := lookupVersionFileMatcher(filepath.Base(v.FileFlag)); !supported {
 		v.Logger.Debugf(
 			"%s is not a natively supported version file, will attempt best effort matching",
 			v.FileFlag,
@@ -96,7 +96,7 @@ func GetVersionFilesInDirectory(dir string) ([]string, error) {
 		}
 
 		name := file.Name()
-		if _, supported := versionFileMatchers[name]; supported {
+		if _, supported := lookupVersionFileMatcher(name); supported {
 			versionFiles = append(versionFiles, name)
 		}
 	}

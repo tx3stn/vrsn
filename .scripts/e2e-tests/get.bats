@@ -47,6 +47,16 @@ teardown() {
 	assert_line --index 0 '1.2.3'
 }
 
+@test "vrsn get w. AndroidManifest.xml --file flag: prints the versionName" {
+	file='AndroidManifest.xml'
+	printf '<manifest\n    android:versionCode="40506"\n    android:versionName="4.5.6">\n</manifest>\n' >"$file"
+
+	run vrsn get --file "$file"
+	assert_success
+	assert_line --index 0 '4.5.6'
+	rm "$file"
+}
+
 @test "vrsn get: errors when multiple version files found and no --file flag" {
 	printf '{"version":"1.2.3"}' >package.json
 

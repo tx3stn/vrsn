@@ -99,3 +99,16 @@ func (s *SemVer) PatchBump() {
 func (s *SemVer) String() string {
 	return fmt.Sprintf("%s%d.%d.%d", s.Prefix, s.Major, s.Minor, s.Patch)
 }
+
+const (
+	androidMajorMultiplier = 10000
+	androidMinorMultiplier = 100
+)
+
+// AndroidVersionCode derives an Android versionCode integer from the semantic
+// version using the conventional MAJOR*10000 + MINOR*100 + PATCH scheme. This
+// reserves two digits each for the minor and patch parts, so it assumes both
+// are below 100.
+func (s *SemVer) AndroidVersionCode() int {
+	return s.Major*androidMajorMultiplier + s.Minor*androidMinorMultiplier + s.Patch
+}

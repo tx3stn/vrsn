@@ -81,6 +81,64 @@ teardown() {
 	rm "$file"
 }
 
+@test "vrsn bump w. AndroidManifest.xml: valid bump --file" {
+	git checkout -b "$test_branch"
+	file='AndroidManifest.xml'
+	printf '<manifest\n    android:versionCode="10203"\n    android:versionName="1.2.3">\n</manifest>\n' >"$file"
+	run vrsn bump minor --file="$file"
+	assert_success
+	assert_line --index 0 'version bumped from 1.2.3 to 1.3.0'
+
+	new=$(grep -o 'android:versionName="[^"]*"' "$file" | cut -d\" -f2)
+	assert_equal "1.3.0" "$new"
+	# versionCode is left untouched.
+	code=$(grep -o 'android:versionCode="[^"]*"' "$file" | cut -d\" -f2)
+	assert_equal "10203" "$code"
+	rm "$file"
+}
+
+@test "vrsn bump w. AndroidManifest variant: matches glob --file" {
+	git checkout -b "$test_branch"
+	file='AndroidManifest.debug.xml'
+	printf '<manifest\n    android:versionName="0.6.32">\n</manifest>\n' >"$file"
+	run vrsn bump patch --file="$file"
+	assert_success
+	assert_line --index 0 'version bumped from 0.6.32 to 0.6.33'
+
+	new=$(grep -o 'android:versionName="[^"]*"' "$file" | cut -d\" -f2)
+	assert_equal "0.6.33" "$new"
+	rm "$file"
+}
+
+@test "vrsn bump w. AndroidManifest.xml: --android-version-code bumps both attrs" {
+	git checkout -b "$test_branch"
+	file='AndroidManifest.xml'
+	printf '<manifest\n    android:versionCode="10203"\n    android:versionName="1.2.3">\n</manifest>\n' >"$file"
+	run vrsn bump minor --file="$file" --android-version-code
+	assert_success
+	assert_line --index 0 'version bumped from 1.2.3 to 1.3.0'
+
+	new=$(grep -o 'android:versionName="[^"]*"' "$file" | cut -d\" -f2)
+	assert_equal "1.3.0" "$new"
+	code=$(grep -o 'android:versionCode="[^"]*"' "$file" | cut -d\" -f2)
+	assert_equal "10300" "$code"
+	rm "$file"
+}
+
+@test "vrsn bump w. AndroidManifest.xml: --android-version-code errors without versionCode" {
+	git checkout -b "$test_branch"
+	file='AndroidManifest.xml'
+	printf '<manifest\n    android:versionName="1.2.3">\n</manifest>\n' >"$file"
+	run vrsn bump minor --file="$file" --android-version-code
+	assert_failure
+	assert_output --partial 'unable to read android:versionCode from AndroidManifest.xml'
+
+	# versionName is left unchanged when the bump errors.
+	new=$(grep -o 'android:versionName="[^"]*"' "$file" | cut -d\" -f2)
+	assert_equal "1.2.3" "$new"
+	rm "$file"
+}
+
 @test "vrsn bump w. VERSION file: --commit default commit message" {
 	git checkout -b "$test_branch"
 	run vrsn bump minor --commit
