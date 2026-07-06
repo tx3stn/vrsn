@@ -224,7 +224,11 @@ func TestWriteVersionToFile(t *testing.T) {
 			t.Parallel()
 
 			tmpDir := copyTestFile(t, tc.parentDir, tc.inputFile)
-			err := files.WriteVersionToFile(tmpDir, tc.inputFile, tc.newVersion)
+			err := files.WriteVersionToFile(
+				tmpDir,
+				tc.inputFile,
+				files.WriteOptions{NewVersion: tc.newVersion},
+			)
 			require.ErrorIs(t, err, tc.expectedError)
 
 			if err != nil {
@@ -281,13 +285,87 @@ requests = { version = "2.32.3" }
 			t.Parallel()
 
 			tmpDir := copyTestFile(t, "with-deps", tc.inputFile)
-			err := files.WriteVersionToFile(tmpDir, tc.inputFile, "2.0.0")
+			err := files.WriteVersionToFile(
+				tmpDir,
+				tc.inputFile,
+				files.WriteOptions{NewVersion: "2.0.0"},
+			)
 			require.NoError(t, err)
 
-			// #nosec G304 -- reading a test fixture from the temp dir.
-			actual, err := os.ReadFile(filepath.Join(tmpDir, tc.inputFile))
+			actual, err := os.ReadFile(filepath.Clean(filepath.Join(tmpDir, tc.inputFile)))
 			require.NoError(t, err)
 
+			assert.Equal(t, tc.expectedContents, string(actual))
+		})
+	}
+}
+
+// TestWriteVersionToFileAndroidVersionCode checks android:versionCode is only
+// bumped when a code is supplied, is left untouched otherwise, and that a
+// missing versionCode attribute is a hard error when a bump was requested.
+func TestWriteVersionToFileAndroidVersionCode(t *testing.T) {
+	t.Parallel()
+
+	const withCode = `<manifest
+    android:versionCode="10203"
+    android:versionName="1.2.3">
+</manifest>
+`
+
+	const withoutCode = `<manifest
+    android:versionName="1.2.3">
+</manifest>
+`
+
+	testCases := map[string]struct {
+		content          string
+		opts             files.WriteOptions
+		expectedError    error
+		expectedContents string
+	}{
+		"BumpsVersionCodeWhenSupplied": {
+			content: withCode,
+			opts:    files.WriteOptions{NewVersion: "1.3.0", AndroidVersionCode: "10300"},
+			expectedContents: `<manifest
+    android:versionCode="10300"
+    android:versionName="1.3.0">
+</manifest>
+`,
+		},
+		"LeavesVersionCodeWhenNotSupplied": {
+			content: withCode,
+			opts:    files.WriteOptions{NewVersion: "1.3.0"},
+			expectedContents: `<manifest
+    android:versionCode="10203"
+    android:versionName="1.3.0">
+</manifest>
+`,
+		},
+		"ErrorsWhenVersionCodeMissing": {
+			content:       withoutCode,
+			opts:          files.WriteOptions{NewVersion: "1.3.0", AndroidVersionCode: "10300"},
+			expectedError: files.ErrGettingVersionCodeFromAndroidManifest,
+			// the file is left unchanged when the bump errors.
+			expectedContents: withoutCode,
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			dir := t.TempDir()
+			file := "AndroidManifest.xml"
+			require.NoError(
+				t,
+				os.WriteFile(filepath.Clean(filepath.Join(dir, file)), []byte(tc.content), 0o600),
+			)
+
+			err := files.WriteVersionToFile(dir, file, tc.opts)
+			require.ErrorIs(t, err, tc.expectedError)
+
+			actual, readErr := os.ReadFile(filepath.Clean(filepath.Join(dir, file)))
+			require.NoError(t, readErr)
 			assert.Equal(t, tc.expectedContents, string(actual))
 		})
 	}
@@ -303,7 +381,7 @@ func TestWriteVersionToFilePreservesPermissions(t *testing.T) {
 	// #nosec G302 -- a non default mode is the point of this test.
 	require.NoError(t, os.Chmod(path, 0o644))
 
-	err := files.WriteVersionToFile(tmpDir, "VERSION", "1.2.3")
+	err := files.WriteVersionToFile(tmpDir, "VERSION", files.WriteOptions{NewVersion: "1.2.3"})
 	require.NoError(t, err)
 
 	info, err := os.Stat(path)
@@ -319,7 +397,11 @@ func TestWriteVersionToFileWithAbsolutePath(t *testing.T) {
 	tmpDir := copyTestFile(t, "all", "VERSION")
 	absPath := filepath.Join(tmpDir, "VERSION")
 
-	err := files.WriteVersionToFile("/some/other/dir", absPath, "4.5.6")
+	err := files.WriteVersionToFile(
+		"/some/other/dir",
+		absPath,
+		files.WriteOptions{NewVersion: "4.5.6"},
+	)
 	require.NoError(t, err)
 
 	actual, err := files.GetVersionFromFile("/another/dir", absPath)

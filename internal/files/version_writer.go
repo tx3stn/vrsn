@@ -7,12 +7,22 @@ import (
 	"path/filepath"
 )
 
+// WriteOptions carries the values written into a version file.
+type WriteOptions struct {
+	// NewVersion is the bumped semantic version written to the primary version
+	// field of every supported file.
+	NewVersion string
+	// AndroidVersionCode, when non-empty, is written to android:versionCode in
+	// AndroidManifest files. Empty leaves versionCode untouched.
+	AndroidVersionCode string
+}
+
 // WriteVersionToFile updates the version file with the provided new version
 // value.
 // The new contents are written to a temp file which then replaces the
 // original, so a failure part way through never leaves a half written
 // version file behind.
-func WriteVersionToFile(dir string, inputFile string, newVersion string) error {
+func WriteVersionToFile(dir string, inputFile string, opts WriteOptions) error {
 	path := filepath.Clean(versionFilePath(dir, inputFile))
 
 	file, err := os.Open(path)
@@ -23,7 +33,7 @@ func WriteVersionToFile(dir string, inputFile string, newVersion string) error {
 	info, statErr := file.Stat()
 
 	matcher := getVersionMatcher(inputFile)
-	newContents, updateErr := matcher.updateVersionInPlace(newScanner(file), newVersion)
+	newContents, updateErr := matcher.updateVersionInPlace(newScanner(file), opts)
 
 	// The whole file has been read so close it before any error handling,
 	// it also has to be closed before the rename below works on Windows.

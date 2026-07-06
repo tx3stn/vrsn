@@ -19,6 +19,10 @@
 		"bump": {
 			"type": "object",
 			"properties": {
+				"android-version-code": {
+					"description": "If the bump command should also bump android:versionCode in AndroidManifest files, derived from the new version as MAJOR*10000+MINOR*100+PATCH.",
+					"type": "boolean"
+				},
 				"commit": {
 					"description": "If the bump command should automatically commit the edited version file.",
 					"type": "boolean"

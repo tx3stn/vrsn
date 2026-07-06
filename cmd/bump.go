@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/spf13/cobra"
 	"github.com/tx3stn/vrsn/internal/config"
@@ -37,6 +38,15 @@ The semantic version in the version file will be updated in place.`, shortDescri
 		Use:           "bump",
 		ValidArgs:     []string{"patch", "major", "minor"},
 	}
+
+	cmd.Flags().
+		BoolVar(
+			&flags.AndroidVersionCode,
+			"android-version-code",
+			false,
+			"Also bump android:versionCode in AndroidManifest files, derived from the new "+
+				"version as MAJOR*10000+MINOR*100+PATCH.",
+		)
 
 	cmd.Flags().
 		BoolVar(&flags.Commit, "commit", false, "Commit the updated version file after bumping.")
@@ -158,8 +168,24 @@ func bumpVersionFile(
 		}
 	}
 
+	writeOpts := files.WriteOptions{NewVersion: newVersion}
+
+	// The version code is derived from the new semver, so it is computed once
+	// and only when requested, then applied to any AndroidManifest files.
+	if conf.Bump.AndroidVersionCode {
+		parsed, parseErr := version.Parse(newVersion)
+		if parseErr != nil {
+			return "", fmt.Errorf(
+				"error parsing new version for android version code: %w",
+				parseErr,
+			)
+		}
+
+		writeOpts.AndroidVersionCode = strconv.Itoa(parsed.AndroidVersionCode())
+	}
+
 	for _, versionFile := range versionFiles {
-		if err := files.WriteVersionToFile(curDir, versionFile, newVersion); err != nil {
+		if err := files.WriteVersionToFile(curDir, versionFile, writeOpts); err != nil {
 			return "", fmt.Errorf("error writing version to file %s: %w", versionFile, err)
 		}
 

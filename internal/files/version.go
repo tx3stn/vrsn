@@ -27,6 +27,19 @@ type versionFileMatcher struct {
 	notFoundError  error
 	singleLineFile bool
 	versionRegex   *regexp.Regexp
+	// secondary describes an additional value updated alongside the primary
+	// version (e.g. android:versionCode). It is nil for the single-field
+	// formats and only applied when a value is supplied to the writer.
+	secondary *secondaryField
+}
+
+// secondaryField is an extra value written alongside the primary version. Its
+// regex must have the same 4-group shape as versionRegex, i.e.
+// (prefix)(key=")(value)(suffix), so the writer can replace the value by index.
+type secondaryField struct {
+	lineMatcher   func(string) bool
+	notFoundError error
+	regex         *regexp.Regexp
 }
 
 // tomlVersionLine matches a version key at the start of the line so
@@ -79,7 +92,8 @@ var bestEffortMatcher = versionFileMatcher{
 }
 
 // androidManifestMatcher extracts the version from the android:versionName
-// attribute in an AndroidManifest.xml file.
+// attribute in an AndroidManifest.xml file. It optionally updates the
+// android:versionCode attribute when a version code is supplied to the writer.
 var androidManifestMatcher = versionFileMatcher{
 	lineMatcher: func(line string) bool {
 		return strings.Contains(line, "android:versionName")
@@ -89,6 +103,13 @@ var androidManifestMatcher = versionFileMatcher{
 	versionRegex: regexp.MustCompile(
 		`(.*)(android:versionName\s*=\s*")(?P<semver>v*\d+\.\d+\.\d+)(".*)`,
 	),
+	secondary: &secondaryField{
+		lineMatcher: func(line string) bool {
+			return strings.Contains(line, "android:versionCode")
+		},
+		notFoundError: ErrGettingVersionCodeFromAndroidManifest,
+		regex:         regexp.MustCompile(`(.*)(android:versionCode\s*=\s*")(\d+)(".*)`),
+	},
 }
 
 // versionFileMatchers contains the utilities to extract and update the
@@ -225,13 +246,17 @@ func (v versionFileMatcher) extractVersion(lineText string) (string, bool) {
 
 func (v versionFileMatcher) updateVersionInPlace(
 	scanner *bufio.Scanner,
-	newVersion string,
+	opts WriteOptions,
 ) ([]string, error) {
 	if v.singleLineFile {
-		return []string{newVersion}, nil
+		return []string{opts.NewVersion}, nil
 	}
 
+	// The secondary field is only updated when the matcher defines one and a
+	// value is supplied, so ordinary formats are unaffected.
+	updateSecondary := v.secondary != nil && opts.AndroidVersionCode != ""
 	foundVersion := false
+	foundSecondary := false
 	allLines := []string{}
 
 	for scanner.Scan() {
@@ -241,14 +266,21 @@ func (v versionFileMatcher) updateVersionInPlace(
 		// reads the first match. Later matches can be unrelated, e.g.
 		// dependency version constraints in Cargo.toml or pyproject.toml.
 		if !foundVersion && v.lineMatcher(lineText) {
-			newVersionLine := v.versionRegex.ReplaceAllString(
+			lineText = v.versionRegex.ReplaceAllString(
 				lineText,
-				fmt.Sprintf(`${1}${2}%s${4}`, newVersion),
+				fmt.Sprintf(`${1}${2}%s${4}`, opts.NewVersion),
 			)
-			allLines = append(allLines, newVersionLine)
 			foundVersion = true
+		}
 
-			continue
+		// The secondary value (e.g. android:versionCode) may share the version
+		// line or be on its own, so it is checked independently of the primary.
+		if updateSecondary && !foundSecondary && v.secondary.lineMatcher(lineText) {
+			lineText = v.secondary.regex.ReplaceAllString(
+				lineText,
+				fmt.Sprintf(`${1}${2}%s${4}`, opts.AndroidVersionCode),
+			)
+			foundSecondary = true
 		}
 
 		allLines = append(allLines, lineText)
@@ -262,6 +294,10 @@ func (v versionFileMatcher) updateVersionInPlace(
 
 	if !foundVersion {
 		return []string{}, v.notFoundError
+	}
+
+	if updateSecondary && !foundSecondary {
+		return []string{}, v.secondary.notFoundError
 	}
 
 	return allLines, nil

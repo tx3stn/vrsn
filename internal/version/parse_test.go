@@ -99,3 +99,39 @@ func TestParse(t *testing.T) {
 		})
 	}
 }
+
+func TestAndroidVersionCode(t *testing.T) {
+	t.Parallel()
+
+	testCases := map[string]struct {
+		input    version.SemVer
+		expected int
+	}{
+		"CombinesEachPart": {
+			input:    version.SemVer{Major: 1, Minor: 2, Patch: 3},
+			expected: 10203,
+		},
+		"PadsSingleDigitParts": {
+			input:    version.SemVer{Major: 0, Minor: 0, Patch: 1},
+			expected: 1,
+		},
+		"HandlesMajorOnly": {
+			input:    version.SemVer{Major: 12, Minor: 0, Patch: 0},
+			expected: 120000,
+		},
+		"IgnoresPrefix": {
+			input:    version.SemVer{Major: 2, Minor: 14, Patch: 74, Prefix: "v"},
+			expected: 21474,
+		},
+	}
+
+	for name, testCase := range testCases {
+		tc := testCase
+
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			assert.Equal(t, tc.expected, tc.input.AndroidVersionCode())
+		})
+	}
+}

@@ -47,6 +47,10 @@ const (
 	// ErrGettingVersionFromAndroidManifest is the error when the android:versionName
 	// attribute can't be found inside an AndroidManifest.xml file.
 	ErrGettingVersionFromAndroidManifest
+	// ErrGettingVersionCodeFromAndroidManifest is the error when the
+	// android:versionCode attribute can't be found inside an AndroidManifest.xml
+	// file but a version code bump was requested.
+	ErrGettingVersionCodeFromAndroidManifest
 )
 
 // Error returns the error string for the error enum.
@@ -101,6 +105,9 @@ func (e Error) Error() string {
 
 	case ErrGettingVersionFromAndroidManifest:
 		return "unable to read version from AndroidManifest.xml"
+
+	case ErrGettingVersionCodeFromAndroidManifest:
+		return "unable to read android:versionCode from AndroidManifest.xml"
 
 	default:
 		return "unknown error"
