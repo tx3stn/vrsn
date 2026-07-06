@@ -1,5 +1,4 @@
 # Build artifacts
-vrsn
 *.exe
 
 # CI/CD

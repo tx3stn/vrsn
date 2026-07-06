@@ -20,7 +20,7 @@ build:
 	@CGO_ENABLED=0 go build -ldflags "-X github.com/tx3stn/vrsn/cmd.Version=${VERSION}" -o ${BINARY_NAME}
 
 .PHONY: build-image
-build-image:
+build-image: build
 	@docker build --tag ${BINARY_NAME}:local .
 
 .PHONY: generate-gifs
@@ -35,6 +35,7 @@ install: build
 
 .PHONY: lint
 lint:
+	@hadolint Dockerfile
 	@golangci-lint fmt ${DIR}
 	@golangci-lint run --fix ${DIR}
 

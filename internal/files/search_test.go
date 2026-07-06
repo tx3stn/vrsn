@@ -1,6 +1,7 @@
 package files_test
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -99,6 +100,7 @@ func TestGetVersionFilesInDirectory(t *testing.T) {
 			directory:   "testdata/all",
 			assertError: require.NoError,
 			expectedFiles: []string{
+				"AndroidManifest.xml",
 				"BUILD.bazel",
 				"build.gradle",
 				"build.gradle.kts",
@@ -130,4 +132,25 @@ func TestGetVersionFilesInDirectory(t *testing.T) {
 			assert.ElementsMatch(t, tc.expectedFiles, actual)
 		})
 	}
+}
+
+// TestGetVersionFilesInDirectoryMatchesAndroidManifestGlob checks that
+// AndroidManifest variants (e.g. AndroidManifest.staging.xml) are discovered
+// via the AndroidManifest*.xml pattern, not just the exact file name.
+func TestGetVersionFilesInDirectoryMatchesAndroidManifestGlob(t *testing.T) {
+	t.Parallel()
+
+	dir := t.TempDir()
+
+	manifest := "AndroidManifest.staging.xml"
+	//#nosec G306 -- test fixture, permissions are not sensitive.
+	require.NoError(t, os.WriteFile(
+		filepath.Join(dir, manifest),
+		[]byte(`<manifest android:versionName="1.2.3"></manifest>`),
+		0o600,
+	))
+
+	actual, err := files.GetVersionFilesInDirectory(dir)
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{manifest}, actual)
 }

@@ -25,6 +25,18 @@ func TestGetVersionFromFile(t *testing.T) {
 			expectedError: files.ErrGettingVersionBestEffort,
 			expected:      "",
 		},
+		"ReturnsVersionFromAndroidManifest": {
+			parentDir:     "all",
+			inputFile:     "AndroidManifest.xml",
+			expectedError: nil,
+			expected:      "2.14.741",
+		},
+		"ReturnsErrorFromInvalidAndroidManifest": {
+			parentDir:     "no-version",
+			inputFile:     "AndroidManifest.xml",
+			expectedError: files.ErrGettingVersionFromAndroidManifest,
+			expected:      "",
+		},
 		"ReturnsVersionFromSingleQuotedFileWithBestEffort": {
 			parentDir:     "all",
 			inputFile:     "version.ts",
@@ -374,6 +386,24 @@ func TestGetVersionFromString(t *testing.T) {
 			inputFile:     "version.ts",
 			expectedError: nil,
 			expected:      "v0.0.9",
+		},
+		"ReturnsVersionFromAndroidManifest": {
+			parentDir:     "all",
+			inputFile:     "AndroidManifest.xml",
+			expectedError: nil,
+			expected:      "2.14.741",
+		},
+		"ReturnsErrorFromInvalidAndroidManifest": {
+			parentDir:     "no-version",
+			inputFile:     "AndroidManifest.xml",
+			expectedError: files.ErrGettingVersionFromAndroidManifest,
+			expected:      "",
+		},
+		"ReturnsVersionWithPrefixFromAndroidManifest": {
+			parentDir:     "prefixed",
+			inputFile:     "AndroidManifest.xml",
+			expectedError: nil,
+			expected:      "v2.14.740",
 		},
 	}
 

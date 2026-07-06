@@ -78,6 +78,19 @@ var bestEffortMatcher = versionFileMatcher{
 	versionRegex:   bestEffortRegex,
 }
 
+// androidManifestMatcher extracts the version from the android:versionName
+// attribute in an AndroidManifest.xml file.
+var androidManifestMatcher = versionFileMatcher{
+	lineMatcher: func(line string) bool {
+		return strings.Contains(line, "android:versionName")
+	},
+	notFoundError:  ErrGettingVersionFromAndroidManifest,
+	singleLineFile: false,
+	versionRegex: regexp.MustCompile(
+		`(.*)(android:versionName\s*=\s*")(?P<semver>v*\d+\.\d+\.\d+)(".*)`,
+	),
+}
+
 // versionFileMatchers contains the utilities to extract and update the
 // version from each supported version file.
 var versionFileMatchers = map[string]versionFileMatcher{
@@ -124,6 +137,33 @@ var versionFileMatchers = map[string]versionFileMatcher{
 	},
 }
 
+// patternMatchers holds matchers for version files identified by a filename
+// glob rather than an exact name, e.g. AndroidManifest.xml and its variants
+// (AndroidManifest.debug.xml). They are consulted only when the exact-name
+// map has no entry.
+var patternMatchers = []struct {
+	pattern string
+	matcher versionFileMatcher
+}{
+	{pattern: "AndroidManifest*.xml", matcher: androidManifestMatcher},
+}
+
+// lookupVersionFileMatcher resolves the matcher for a base filename, checking
+// exact names first then filename patterns.
+func lookupVersionFileMatcher(name string) (versionFileMatcher, bool) {
+	if matcher, exists := versionFileMatchers[name]; exists {
+		return matcher, true
+	}
+
+	for _, pm := range patternMatchers {
+		if matched, _ := filepath.Match(pm.pattern, name); matched {
+			return pm.matcher, true
+		}
+	}
+
+	return versionFileMatcher{}, false
+}
+
 // getVersionMatcher gets the relevant versionFileMatcher config for the
 // provided input file, falling back to the best effort matcher if there is no
 // config for a file with that name.
@@ -131,7 +171,7 @@ func getVersionMatcher(inputFile string) versionFileMatcher {
 	// Split dir and file to support relative paths provided with `--file` CLI flag.
 	_, file := filepath.Split(inputFile)
 
-	matcher, exists := versionFileMatchers[file]
+	matcher, exists := lookupVersionFileMatcher(file)
 	if !exists {
 		return bestEffortMatcher
 	}

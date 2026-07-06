@@ -32,6 +32,12 @@ important as the updater function uses the groups by index.
 If you don't need more groups in the expression you can pad it out with `(.*)`,
 see the expression used for `VERSION` files as an example.
 
+If a file type is identified by a filename pattern rather than an exact name
+(e.g. `AndroidManifest.xml` and variants like `AndroidManifest.debug.xml`), add
+it to the `patternMatchers` slice in the same file instead of the exact-name
+map. Patterns use `filepath.Match` syntax (e.g. `AndroidManifest*.xml`) and are
+only consulted when the exact-name map has no entry.
+
 ### Adding unit tests
 
 Unit tests are essential to keep everything working properly as the code

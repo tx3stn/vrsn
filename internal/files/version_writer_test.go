@@ -73,6 +73,18 @@ func TestWriteVersionToFile(t *testing.T) {
 			newVersion:    "",
 			expectedError: files.ErrGettingVersionFromBazelModule,
 		},
+		"WritesVersionToAndroidManifest": {
+			parentDir:     "all",
+			inputFile:     "AndroidManifest.xml",
+			newVersion:    "2.14.742",
+			expectedError: nil,
+		},
+		"ReturnsErrorForInvalidAndroidManifest": {
+			parentDir:     "no-version",
+			inputFile:     "AndroidManifest.xml",
+			newVersion:    "",
+			expectedError: files.ErrGettingVersionFromAndroidManifest,
+		},
 		"WritesVersionToBuildGradle": {
 			parentDir:     "all",
 			inputFile:     "build.gradle",
