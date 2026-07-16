@@ -42,6 +42,7 @@ func init() {
 	rootCmd.AddCommand(NewCmdCheck())
 	rootCmd.AddCommand(NewCmdBump())
 	rootCmd.AddCommand(NewCmdGet())
+	rootCmd.AddCommand(NewCmdSet())
 
 	rootCmd.PersistentFlags().
 		BoolVar(&flags.Verbose, "verbose", false, "display verbose output for more detail on what the command is doing")
