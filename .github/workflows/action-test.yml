@@ -1,0 +1,54 @@
+name: action-test
+
+# Exercises the local GitHub Action (action.yml) end to end so its wiring is
+# validated on every PR.
+
+on:
+  pull_request:
+
+jobs:
+  action-test:
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.26"
+          cache: true
+      # Build an image from the current source and tag it so the action's
+      # `docker run` uses it locally instead of pulling the published `latest`
+      # tag (which does not yet contain new commands added on this branch).
+      - name: build local image
+        run: |
+          make build
+          docker build --tag ghcr.io/tx3stn/vrsn:pr .
+      - name: seed a version file
+        run: |
+          mkdir -p action-test-tmp
+          echo "1.2.3" > action-test-tmp/VERSION
+      - name: vrsn get
+        id: get
+        uses: ./
+        with:
+          command: get
+          version: pr
+          working-directory: action-test-tmp
+      - name: assert get output
+        run: |
+          echo "get stdout: '${{ steps.get.outputs.stdout }}'"
+          test "${{ steps.get.outputs.stdout }}" = "1.2.3"
+      - name: vrsn set
+        uses: ./
+        with:
+          command: set
+          args: 9.9.9
+          version: pr
+          working-directory: action-test-tmp
+      - name: assert set wrote the file
+        run: |
+          got="$(cat action-test-tmp/VERSION)"
+          echo "VERSION file: '$got'"
+          test "$got" = "9.9.9"
