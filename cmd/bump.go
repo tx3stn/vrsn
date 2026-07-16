@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/tx3stn/vrsn/internal/config"
@@ -200,10 +201,15 @@ func writeVersion(
 
 	writeOpts := files.WriteOptions{NewVersion: newVersion}
 
-	// The version code is derived from the new semver, so it is computed once
-	// and only when requested, then applied to any AndroidManifest files.
+	// The version code is derived from the numeric part of the new semver, so it
+	// is computed once and only when requested, then applied to any
+	// AndroidManifest files. Any set suffix (e.g. the "-dev" in 1.2.3-dev) is
+	// dropped before parsing, since the version code is an integer. bump always
+	// passes a numeric version, so the split is a no-op there.
 	if opts.androidVersionCode {
-		parsed, parseErr := version.Parse(newVersion)
+		core, _, _ := strings.Cut(newVersion, "-")
+
+		parsed, parseErr := version.Parse(core)
 		if parseErr != nil {
 			return "", fmt.Errorf(
 				"error parsing new version for android version code: %w",
