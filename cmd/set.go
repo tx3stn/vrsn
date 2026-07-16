@@ -3,6 +3,8 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"regexp"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/tx3stn/vrsn/internal/config"
@@ -10,6 +12,12 @@ import (
 	"github.com/tx3stn/vrsn/internal/logger"
 	"github.com/tx3stn/vrsn/internal/version"
 )
+
+// setSuffixRegex matches the optional suffix set accepts after the first '-'
+// (e.g. dev, rc1, fix-this): a non-empty run of letters, digits and hyphens.
+//
+
+var setSuffixRegex = regexp.MustCompile(`^[a-zA-Z0-9-]+$`)
 
 // NewCmdSet creates the set command.
 func NewCmdSet() *cobra.Command {
@@ -27,8 +35,9 @@ Pass the version to write as an argument, e.g.:
 
 Unlike bump, set does not check that the version is a valid increment of the
 current one, so it can jump to an arbitrary version or even move backwards. The
-version must still be a well-formed semantic version. It only updates the
-version file(s); it does not commit or tag.`, shortDescription),
+version must be MAJOR.MINOR.PATCH, optionally with a "-" suffix of letters,
+digits and hyphens (e.g. 1.2.3-dev). It only updates the version file(s); it
+does not commit or tag.`, shortDescription),
 		Short:         shortDescription,
 		SilenceErrors: true,
 		SilenceUsage:  true,
@@ -73,14 +82,27 @@ func runSet(ccmd *cobra.Command, args []string) error {
 	return err
 }
 
-// getSetVersion validates the supplied version is a well-formed semantic version
-// and returns its canonical form. It ignores the current version so, unlike
-// bump, it performs no increment-validity check.
+// getSetVersion validates the supplied version and returns its canonical form.
+// It ignores the current version so, unlike bump, it performs no
+// increment-validity check. It additionally accepts an optional "-<suffix>"
+// marker (e.g. 1.2.3-dev) that the numeric-only bump and check do not.
 func getSetVersion(_ string, args []string) (string, error) {
-	parsed, err := version.Parse(args[0])
+	core, suffix, hasSuffix := strings.Cut(args[0], "-")
+
+	parsed, err := version.Parse(core)
 	if err != nil {
 		return "", fmt.Errorf("error parsing version: %w", err)
 	}
 
-	return parsed.String(), nil
+	result := parsed.String()
+
+	if hasSuffix {
+		if !setSuffixRegex.MatchString(suffix) {
+			return "", ErrInvalidVersionSuffix
+		}
+
+		result += "-" + suffix
+	}
+
+	return result, nil
 }

@@ -17,6 +17,10 @@ const (
 	// version files (the '--file' flag or the 'files' config option) but
 	// commit is disabled, so there is no version bump commit to tag.
 	ErrGitTagFileNoCommit
+	// ErrInvalidVersionSuffix is the error when the suffix after the first '-'
+	// in a version passed to set contains characters other than letters, digits
+	// and hyphens.
+	ErrInvalidVersionSuffix
 )
 
 // Error returns the error string for the error enum.
@@ -34,6 +38,9 @@ func (e Error) Error() string {
 	case ErrGitTagFileNoCommit:
 		return "cannot combine --git-tag with version files unless commit is enabled " +
 			"(the tag must point at the version bump commit)"
+
+	case ErrInvalidVersionSuffix:
+		return "version suffix must contain only letters, digits and hyphens"
 
 	default:
 		return "unknown error"

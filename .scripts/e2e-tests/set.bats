@@ -65,6 +65,37 @@ teardown() {
 	assert_equal "0.0.1" "$new"
 }
 
+@test "vrsn set w. VERSION file: allows a -suffix" {
+	git checkout -b "$test_branch"
+	run vrsn set 0.0.0-dev
+	assert_success
+	assert_line --index 0 'version set from 0.0.1 to 0.0.0-dev'
+
+	new=$(head -n1 VERSION)
+	assert_equal "0.0.0-dev" "$new"
+}
+
+@test "vrsn set w. VERSION file: allows hyphens in the suffix" {
+	git checkout -b "$test_branch"
+	run vrsn set 1.2.3-fix-this
+	assert_success
+	assert_line --index 0 'version set from 0.0.1 to 1.2.3-fix-this'
+
+	new=$(head -n1 VERSION)
+	assert_equal "1.2.3-fix-this" "$new"
+}
+
+@test "vrsn set w. VERSION file: rejects an invalid suffix" {
+	git checkout -b "$test_branch"
+	run vrsn set 0.0.0-bad_suffix
+	assert_failure
+	assert_output --partial 'version suffix must contain only letters, digits and hyphens'
+
+	# the version file is left unchanged when the suffix is invalid.
+	new=$(head -n1 VERSION)
+	assert_equal "0.0.1" "$new"
+}
+
 @test "vrsn set w. VERSION file: valid set --file" {
 	git checkout -b "$test_branch"
 	file='package.json'
@@ -112,5 +143,21 @@ teardown() {
 	assert_equal "3.4.5" "$new"
 	code=$(grep -o 'android:versionCode="[^"]*"' "$file" | cut -d\" -f2)
 	assert_equal "30405" "$code"
+	rm "$file"
+}
+
+@test "vrsn set w. AndroidManifest.xml: -suffix keeps versionCode from numeric core" {
+	git checkout -b "$test_branch"
+	file='AndroidManifest.xml'
+	printf '<manifest\n    android:versionCode="10203"\n    android:versionName="1.2.3">\n</manifest>\n' >"$file"
+	run vrsn set 2.3.4-dev --file="$file" --android-version-code
+	assert_success
+	assert_line --index 0 'version set from 1.2.3 to 2.3.4-dev'
+
+	new=$(grep -o 'android:versionName="[^"]*"' "$file" | cut -d\" -f2)
+	assert_equal "2.3.4-dev" "$new"
+	# versionCode derives from the numeric core 2.3.4: 2*10000 + 3*100 + 4 = 20304
+	code=$(grep -o 'android:versionCode="[^"]*"' "$file" | cut -d\" -f2)
+	assert_equal "20304" "$code"
 	rm "$file"
 }
