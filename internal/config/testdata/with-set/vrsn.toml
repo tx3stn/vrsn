@@ -1,0 +1,14 @@
+files = ['VERSION']
+verbose = false
+
+[bump]
+commit = false
+commit-msg = 'bump version'
+git-tag = false
+tag-msg = ''
+
+[check]
+base-branch = 'main'
+
+[set]
+android-version-code = true

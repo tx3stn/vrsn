@@ -148,6 +148,57 @@ func TestGetMergesConfigFileAndFlags(t *testing.T) {
 	}
 }
 
+func TestGetSetOptions(t *testing.T) {
+	testCases := map[string]struct {
+		configFile  string
+		changed     changedFlags
+		flagAndroid bool
+		expected    config.SetOpts
+	}{
+		"ReadsAndroidVersionCodeFromConfig": {
+			configFile:  "testdata/with-set/vrsn.toml",
+			changed:     changedFlags{},
+			flagAndroid: false,
+			expected:    config.SetOpts{AndroidVersionCode: true},
+		},
+		"ChangedFlagOverridesConfig": {
+			configFile:  "testdata/with-set/vrsn.toml",
+			changed:     changedFlags{"android-version-code": true},
+			flagAndroid: false,
+			expected:    config.SetOpts{AndroidVersionCode: false},
+		},
+		"MissingConfigSectionKeepsFlagDefault": {
+			configFile:  "testdata/with-files/vrsn.toml",
+			changed:     changedFlags{},
+			flagAndroid: true,
+			expected:    config.SetOpts{AndroidVersionCode: true},
+		},
+	}
+
+	for name, testCase := range testCases {
+		tc := testCase
+
+		t.Run(name, func(t *testing.T) {
+			// t.Setenv also prevents the tests running in parallel which
+			// keeps the mutation of the global flag var safe.
+			t.Setenv("XDG_CONFIG_DIR", "")
+			t.Setenv("XDG_CONFIG_HOME", "")
+			t.Setenv("HOME", "")
+
+			originalAndroid := flags.AndroidVersionCode
+			flags.AndroidVersionCode = tc.flagAndroid
+
+			t.Cleanup(func() {
+				flags.AndroidVersionCode = originalAndroid
+			})
+
+			conf, err := config.Get(tc.configFile, tc.changed)
+			require.NoError(t, err)
+			assert.Equal(t, tc.expected, conf.Set)
+		})
+	}
+}
+
 func TestFindConfigFile(t *testing.T) {
 	testCases := map[string]struct {
 		chdir           string

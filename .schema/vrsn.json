@@ -53,6 +53,17 @@
 			},
 			"required": ["base-branch"],
 			"additionalProperties": false
+		},
+		"set": {
+			"type": "object",
+			"properties": {
+				"android-version-code": {
+					"description": "If the set command should also set android:versionCode in AndroidManifest files, derived from the version as MAJOR*10000+MINOR*100+PATCH.",
+					"type": "boolean"
+				}
+			},
+			"required": ["android-version-code"],
+			"additionalProperties": false
 		}
 	},
 	"required": ["verbose", "bump", "check"],

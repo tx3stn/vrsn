@@ -11,3 +11,6 @@ android-version-code = false
 
 [check]
 base-branch = 'something-other-than-main'
+
+[set]
+android-version-code = false
