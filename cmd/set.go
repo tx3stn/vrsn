@@ -15,7 +15,7 @@ import (
 func NewCmdSet() *cobra.Command {
 	shortDescription := "Set the semantic version in the version file(s) directly."
 
-	return &cobra.Command{
+	cmd := &cobra.Command{
 		Args: cobra.ExactArgs(1),
 		RunE: runSet,
 		//nolint:perfsprint
@@ -34,6 +34,17 @@ version file(s); it does not commit or tag.`, shortDescription),
 		SilenceUsage:  true,
 		Use:           "set <version>",
 	}
+
+	cmd.Flags().
+		BoolVar(
+			&flags.AndroidVersionCode,
+			"android-version-code",
+			false,
+			"Also set android:versionCode in AndroidManifest files, derived from the "+
+				"version as MAJOR*10000+MINOR*100+PATCH.",
+		)
+
+	return cmd
 }
 
 // runSet is the entrypoint for the set command.
@@ -54,8 +65,9 @@ func runSet(ccmd *cobra.Command, args []string) error {
 	log.Debugf("set command args: %s", args)
 
 	_, err = writeVersion(curDir, args, log, conf, writeConfig{
-		resolve: getSetVersion,
-		verb:    "set",
+		resolve:            getSetVersion,
+		verb:               "set",
+		androidVersionCode: conf.Set.AndroidVersionCode,
 	})
 
 	return err

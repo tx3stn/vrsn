@@ -81,3 +81,36 @@ teardown() {
 	assert_equal "0.0.1" "$untouched"
 	rm "$file"
 }
+
+@test "vrsn set w. AndroidManifest.xml: --android-version-code sets both attrs" {
+	git checkout -b "$test_branch"
+	file='AndroidManifest.xml'
+	printf '<manifest\n    android:versionCode="10203"\n    android:versionName="1.2.3">\n</manifest>\n' >"$file"
+	run vrsn set 3.4.5 --file="$file" --android-version-code
+	assert_success
+	assert_line --index 0 'version set from 1.2.3 to 3.4.5'
+
+	new=$(grep -o 'android:versionName="[^"]*"' "$file" | cut -d\" -f2)
+	assert_equal "3.4.5" "$new"
+	# 3*10000 + 4*100 + 5 = 30405
+	code=$(grep -o 'android:versionCode="[^"]*"' "$file" | cut -d\" -f2)
+	assert_equal "30405" "$code"
+	rm "$file"
+}
+
+@test "vrsn set w. AndroidManifest.xml: android-version-code from config file" {
+	git checkout -b "$test_branch"
+	file='AndroidManifest.xml'
+	printf '<manifest\n    android:versionCode="10203"\n    android:versionName="1.2.3">\n</manifest>\n' >"$file"
+
+	cfg_file="$BATS_TEST_DIRNAME/set.toml"
+	run vrsn set 3.4.5 --file="$file" --config="$cfg_file"
+	assert_success
+	assert_line --index 0 'version set from 1.2.3 to 3.4.5'
+
+	new=$(grep -o 'android:versionName="[^"]*"' "$file" | cut -d\" -f2)
+	assert_equal "3.4.5" "$new"
+	code=$(grep -o 'android:versionCode="[^"]*"' "$file" | cut -d\" -f2)
+	assert_equal "30405" "$code"
+	rm "$file"
+}

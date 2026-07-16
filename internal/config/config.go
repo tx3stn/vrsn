@@ -22,6 +22,7 @@ type (
 	Config struct {
 		Bump    BumpOpts  `toml:"bump"`
 		Check   CheckOpts `toml:"check"`
+		Set     SetOpts   `toml:"set"`
 		Files   []string  `toml:"files"`
 		Verbose bool      `toml:"verbose"`
 	}
@@ -38,6 +39,11 @@ type (
 	// CheckOpts are the vrsn check specific options in the config file.
 	CheckOpts struct {
 		BaseBranch string `toml:"base-branch"`
+	}
+
+	// SetOpts are the vrsn set specific options in the config file.
+	SetOpts struct {
+		AndroidVersionCode bool `toml:"android-version-code"`
 	}
 )
 
@@ -57,6 +63,9 @@ func Get(fileFlag string, flagSet FlagChecker) (Config, error) {
 		},
 		Check: CheckOpts{
 			BaseBranch: flags.BaseBranch,
+		},
+		Set: SetOpts{
+			AndroidVersionCode: flags.AndroidVersionCode,
 		},
 		Files:   filesFromFlag(flags.VersionFile),
 		Verbose: flags.Verbose,
@@ -104,6 +113,7 @@ func applyChangedFlags(conf *Config, flagSet FlagChecker) {
 
 	if flagSet.Changed("android-version-code") {
 		conf.Bump.AndroidVersionCode = flags.AndroidVersionCode
+		conf.Set.AndroidVersionCode = flags.AndroidVersionCode
 	}
 
 	if flagSet.Changed("commit") {
