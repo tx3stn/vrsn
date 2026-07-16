@@ -24,12 +24,22 @@ jobs:
           git config --global user.email tx3stn@github-action.com
           git config --global user.name 'tx3stn github actions'
           VERSION=$(head -n 1 VERSION)
+          MAJOR=$(echo "${VERSION}" | cut -d. -f1)
+          MAJOR_MINOR=$(echo "${VERSION}" | cut -d. -f1,2)
           git fetch --force --tags
           if git rev-parse -q --verify "refs/tags/${VERSION}" >/dev/null; then
-            echo "Tag ${VERSION} already exists; skipping tag creation"
+            echo "Tag ${VERSION} already exists; skipping release tagging"
           else
             git tag -a "${VERSION}" -m "Release ${VERSION}"
             git push origin "${VERSION}"
+
+            # Move the floating major and major.minor tags onto this release so
+            # the GitHub Action can be pinned with @${MAJOR} or @${MAJOR_MINOR}
+            # (mirroring the ghcr image tags). These move on every release.
+            git tag -f -a "${MAJOR}" -m "Update ${MAJOR} tag to ${VERSION}"
+            git push -f origin "${MAJOR}"
+            git tag -f -a "${MAJOR_MINOR}" -m "Update ${MAJOR_MINOR} tag to ${VERSION}"
+            git push -f origin "${MAJOR_MINOR}"
           fi
       - name: Set up Go
         uses: actions/setup-go@v6

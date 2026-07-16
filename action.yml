@@ -1,0 +1,58 @@
+name: vrsn
+description: Run the vrsn semantic-versioning CLI in your workflow.
+author: tx3stn
+branding:
+  icon: tag
+  color: purple
+
+inputs:
+  command:
+    description: The vrsn subcommand to run (e.g. set, bump, check, get).
+    required: true
+  args:
+    description: >-
+      Additional arguments or flags passed to the vrsn command, e.g.
+      "2.0.0 --file VERSION". Interpreted by the shell, so quote values that
+      contain spaces and do not pass untrusted input.
+    required: false
+    default: ""
+  version:
+    description: >-
+      The ghcr.io/tx3stn/vrsn image tag to run: latest (default), or a pinned
+      tag such as 1, 1.4 or 1.4.0.
+    required: false
+    default: latest
+  working-directory:
+    description: Directory (relative to the repository root) to run vrsn in.
+    required: false
+    default: "."
+
+outputs:
+  stdout:
+    description: The trimmed standard output produced by the vrsn command (useful for `get`).
+    value: ${{ steps.vrsn.outputs.stdout }}
+
+runs:
+  using: composite
+  steps:
+    - id: vrsn
+      shell: bash
+      run: |
+        set -euo pipefail
+        image="ghcr.io/tx3stn/vrsn:${{ inputs.version }}"
+        # Mount the checked-out repo at /repo (the image's WORKDIR) and mark it a
+        # git safe.directory so vrsn's git operations don't trip over the mount's
+        # ownership. The command and args are interpolated into the shell so
+        # quoted values (e.g. commit messages) are honoured, matching the orb.
+        out="$(docker run --rm \
+          -v "$GITHUB_WORKSPACE:/repo" \
+          -w "/repo/${{ inputs.working-directory }}" \
+          --entrypoint sh "$image" \
+          -c 'git config --global --add safe.directory "*"; exec vrsn "$@"' \
+          vrsn ${{ inputs.command }} ${{ inputs.args }})"
+        echo "$out"
+        {
+          echo "stdout<<__VRSN_EOF__"
+          echo "$out"
+          echo "__VRSN_EOF__"
+        } >> "$GITHUB_OUTPUT"
