@@ -108,7 +108,13 @@ func runBump(ccmd *cobra.Command, args []string) error {
 		return bumpGitTag(curDir, args, log, conf.Bump.TagMsg)
 	}
 
-	newVersion, err := bumpVersionFile(curDir, args, log, conf)
+	newVersion, err := writeVersion(curDir, args, log, conf, writeConfig{
+		resolve:            getNewVersion,
+		verb:               "bumped",
+		commit:             conf.Bump.Commit,
+		commitMsg:          conf.Bump.CommitMsg,
+		androidVersionCode: conf.Bump.AndroidVersionCode,
+	})
 	if err != nil {
 		return err
 	}
@@ -135,13 +141,37 @@ func ValidateBumpOpts(gitTag bool, versionFiles []string, commit bool) error {
 	return nil
 }
 
-// bumpVersionFile finds the version files, bumps the version in them and
-// optionally commits the change, returning the new version.
-func bumpVersionFile(
+// versionResolver derives the new version to write from the current version and
+// the command args. bump derives a valid single-step increment; set uses the
+// supplied version directly.
+type versionResolver func(currentVersion string, args []string) (string, error)
+
+// writeConfig captures the behaviour that differs between the commands sharing
+// writeVersion. Reading these explicitly (rather than conf.Bump.*) keeps bump's
+// commit/tag options from leaking into commands that opt out of them.
+type writeConfig struct {
+	// resolve derives the new version (bump: getNewVersion, set: getSetVersion).
+	resolve versionResolver
+	// verb is the past-tense action used in the summary log ("bumped" / "set").
+	verb string
+	// commit, when true, commits the updated version file(s) after writing.
+	commit bool
+	// commitMsg is the (unrendered) commit message template, used when commit.
+	commitMsg string
+	// androidVersionCode, when true, also writes android:versionCode derived
+	// from the new version to any AndroidManifest files.
+	androidVersionCode bool
+}
+
+// writeVersion finds the version files, resolves and writes the new version to
+// them, logs the change and optionally commits, returning the new version. It
+// is the shared core of the bump and set commands.
+func writeVersion(
 	curDir string,
 	args []string,
 	log logger.Basic,
 	conf config.Config,
+	opts writeConfig,
 ) (string, error) {
 	versionFiles, err := resolveVersionFiles(curDir, conf.Files, log, true)
 	if err != nil {
@@ -153,7 +183,7 @@ func bumpVersionFile(
 		return "", fmt.Errorf("error getting version from files: %w", err)
 	}
 
-	newVersion, err := getNewVersion(currentVersion, args)
+	newVersion, err := opts.resolve(currentVersion, args)
 	if err != nil {
 		return "", err
 	}
@@ -161,8 +191,8 @@ func bumpVersionFile(
 	// Render the commit message before writing so an invalid template errors
 	// before any files are changed.
 	commitMsg := ""
-	if conf.Bump.Commit {
-		commitMsg, err = template.Render(conf.Bump.CommitMsg, newVersion)
+	if opts.commit {
+		commitMsg, err = template.Render(opts.commitMsg, newVersion)
 		if err != nil {
 			return "", fmt.Errorf("error rendering commit message: %w", err)
 		}
@@ -172,7 +202,7 @@ func bumpVersionFile(
 
 	// The version code is derived from the new semver, so it is computed once
 	// and only when requested, then applied to any AndroidManifest files.
-	if conf.Bump.AndroidVersionCode {
+	if opts.androidVersionCode {
 		parsed, parseErr := version.Parse(newVersion)
 		if parseErr != nil {
 			return "", fmt.Errorf(
@@ -189,12 +219,12 @@ func bumpVersionFile(
 			return "", fmt.Errorf("error writing version to file %s: %w", versionFile, err)
 		}
 
-		log.Debugf("bumped version in %s", versionFile)
+		log.Debugf("%s version in %s", opts.verb, versionFile)
 	}
 
-	log.Infof("version bumped from %s to %s", currentVersion, newVersion)
+	log.Infof("version %s from %s to %s", opts.verb, currentVersion, newVersion)
 
-	if conf.Bump.Commit {
+	if opts.commit {
 		if err := commitVersionFiles(curDir, versionFiles, commitMsg, log); err != nil {
 			return "", err
 		}

@@ -245,6 +245,27 @@ and the new version is used for both the file and the tag. The `--commit`
 option is required so the tag has a version bump commit to point at, you'll
 get an error without it.
 
+### `set`
+
+Need to write a specific version rather than increment the current one? Pass the
+version to `vrsn set`:
+
+```bash
+vrsn set 2.0.0
+```
+
+Unlike `bump`, `set` does not check that the version is a valid increment of the
+current one, so it can jump to an arbitrary version or even move backwards. The
+version must still be a well-formed semantic version. `set` only updates the
+version file(s) — it does not commit or tag.
+
+Use the `--file` flag to write to a specific file (the `files` config option
+writes to every configured file, just like `bump`):
+
+```bash
+vrsn set 2.0.0 --file './services/service-name/VERSION'
+```
+
 ### `get`
 
 Run `vrsn get` to print the current version.
