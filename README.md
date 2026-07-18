@@ -147,46 +147,6 @@ Pass the subcommand in `command` and any extra arguments or flags in `args`:
     args: patch
 ```
 
-The command's output is exposed as the `stdout` output, so you can chain calls.
-For example, to set the version in your version file(s) from the latest git tag:
-
-```yaml
-- uses: actions/checkout@v4
-- id: tag
-  uses: tx3stn/vrsn@1
-  with:
-    command: get
-    args: --git-tag
-- uses: tx3stn/vrsn@1
-  with:
-    command: set
-    args: ${{ steps.tag.outputs.stdout }}
-```
-
-By default the action runs the `latest` image. For reproducible runs, pin a
-specific version with the `version` input:
-
-```yaml
-- uses: tx3stn/vrsn@1
-  with:
-    command: check
-    version: 1.3.0
-```
-
-`vrsn` is versioned with bare semver tags (no `v` prefix), so pin the action with
-`@1` to track the latest v1 release, or `@1.3.0` for an exact version.
-
-If your version file lives in a subdirectory (e.g. a monorepo), point the action
-at it with `working-directory`:
-
-```yaml
-- uses: tx3stn/vrsn@1
-  with:
-    command: bump
-    args: minor
-    working-directory: ./services/my-service
-```
-
 ## Commands
 
 ### `--help`
@@ -422,8 +382,7 @@ docker run --rm -it -v $PWD:/repo vrsn:latest check
 
 ## CI usage examples
 
-To auto increment a version in a dependabot pull request so you don't need to
-manually do it:
+### Auto increment version in a dependabot pull request
 
 1. Configure a [write access deploy key](https://circleci.com/docs/github-integration/#deploy-keys-and-user-keys)
 in CircleCI, as the bump version command will commit the version bump to the branch.
@@ -441,6 +400,36 @@ workflows:
          branches:
            only:
              - /^dependabot\/.*/
+```
+
+### Set version files from git tag
+
+The command's output is exposed as the `stdout` output, so you can chain calls.
+
+```yaml
+- uses: actions/checkout@v4
+- id: tag
+  uses: tx3stn/vrsn@1
+  with:
+    command: get
+    args: --git-tag
+- uses: tx3stn/vrsn@1
+  with:
+    command: set
+    args: ${{ steps.tag.outputs.stdout }}
+```
+
+### Independently version services in a monorepo
+
+If your version file lives in a subdirectory (e.g. a monorepo), point the action
+at it with `working-directory`:
+
+```yaml
+- uses: tx3stn/vrsn@1
+  with:
+    command: bump
+    args: minor
+    working-directory: ./services/my-service
 ```
 
 ## Limitations
