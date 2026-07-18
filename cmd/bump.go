@@ -66,8 +66,8 @@ The semantic version in the version file will be updated in place.`, shortDescri
 			&flags.GitTag,
 			"git-tag",
 			false,
-			"Use git tags rather than a version file. "+
-				"Combine with --file and --commit to bump the version file, commit it and tag the commit.",
+			"Bump the git tag only: read the latest tag and write the new tag on the "+
+				"current commit. Version files (--file or the config `files` option) are ignored.",
 		)
 
 	cmd.Flags().
@@ -100,43 +100,21 @@ func runBump(ccmd *cobra.Command, args []string) error {
 	log.Debugf("config: %+v", conf)
 	log.Debugf("bump command args: %s", args)
 
-	err = ValidateBumpOpts(conf.Bump.GitTag, conf.Files, conf.Bump.Commit)
-	if err != nil {
-		return err
-	}
-
-	if conf.Bump.GitTag && len(conf.Files) == 0 {
+	// --git-tag operates purely on git tags: read the latest tag, bump it and
+	// write the new tag on the current commit. Any version files (from --file
+	// or the config `files` option) are ignored in this mode.
+	if conf.Bump.GitTag {
 		return bumpGitTag(curDir, args, log, conf.Bump.TagMsg)
 	}
 
-	newVersion, err := writeVersion(curDir, args, log, conf, writeConfig{
+	if _, err := writeVersion(curDir, args, log, conf, writeConfig{
 		resolve:            getNewVersion,
 		verb:               "bumped",
 		commit:             conf.Bump.Commit,
 		commitMsg:          conf.Bump.CommitMsg,
 		androidVersionCode: conf.Bump.AndroidVersionCode,
-	})
-	if err != nil {
+	}); err != nil {
 		return err
-	}
-
-	// When --git-tag is combined with --file the version file has been
-	// bumped and committed above, so the tag points at the bump commit.
-	if conf.Bump.GitTag {
-		if err := applyGitTag(curDir, newVersion, conf.Bump.TagMsg); err != nil {
-			return err
-		}
-
-		log.Infof("git tag %s added", newVersion)
-	}
-
-	return nil
-}
-
-// ValidateBumpOpts checks the combination of bump options is valid.
-func ValidateBumpOpts(gitTag bool, versionFiles []string, commit bool) error {
-	if gitTag && len(versionFiles) > 0 && !commit {
-		return ErrGitTagFileNoCommit
 	}
 
 	return nil

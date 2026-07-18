@@ -1,3 +1,4 @@
+files = ['VERSION']
 verbose = false
 
 [bump]

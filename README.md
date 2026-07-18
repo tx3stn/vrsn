@@ -281,25 +281,16 @@ vrsn bump minor --file AndroidManifest.xml --android-version-code
 `vrsn` errors without writing anything if the manifest has no
 `android:versionCode` attribute to update.
 
-Use git tags rather than a version file? Pass the `--git-tag` flag to read from
-the existing tags and write a new tag. e.g.:
+Use git tags rather than a version file? Pass the `--git-tag` flag to read the
+latest tag, bump it and write the new tag on the current commit. e.g.:
 
 ```bash
-vrsn bump --git-tag --tag-msg 'custom tag message'
+vrsn bump patch --git-tag --tag-msg 'custom tag message'
 ```
 
-Need a version file and a git tag? Combine the `--git-tag` flag with `--file`
-and `--commit` to bump the version in the file, commit it, and then tag that
-commit. e.g.:
-
-```bash
-vrsn bump patch --git-tag --file VERSION --commit
-```
-
-In this mode the version file is the source of truth for the current version,
-and the new version is used for both the file and the tag. The `--commit`
-option is required so the tag has a version bump commit to point at, you'll
-get an error without it.
+In this mode `vrsn` works purely with git tags. Any version files are ignored,
+so `--file`, the `files` config option and `--commit` have no effect, and
+nothing is written or committed other than the new tag.
 
 ### `set`
 
