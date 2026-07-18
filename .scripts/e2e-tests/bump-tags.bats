@@ -1,10 +1,13 @@
 #!/usr/bin/env bats
 
-# e2e tests for the `vrsn bump` command
+# e2e tests for the `vrsn bump --git-tag` command. In this mode vrsn works
+# purely with git tags: it reads the latest tag, bumps it and writes the new
+# tag on the current commit. Any version files are ignored.
 
 main_branch='main'
 test_branch='bats-tests'
 test_dir='/tmp/project-tag'
+tag_msg='custom tag message'
 
 setup_file() {
 	echo "### suite setup ###"
@@ -12,7 +15,7 @@ setup_file() {
 	configure-git "$main_branch"
 
 	load ./setup-git-repo.sh
-	setup-git-repo-with-tags "$test_dir"
+	setup-git-repo-with-version-file "$test_dir"
 }
 
 teardown_file() {
@@ -55,7 +58,6 @@ teardown() {
 	git add README.md
 	git commit -m "update"
 
-	tag_msg='custom tag message'
 	run vrsn bump patch --git-tag --tag-msg="$tag_msg"
 	assert_success
 	assert_line --index 0 'git tag version bumped from 0.0.1 to 0.0.2'
@@ -93,5 +95,45 @@ teardown() {
 
 	run git --no-pager tag --list --points-at HEAD -n1
 	assert_success
-	assert_line --index 0 --partial 'custom tag message'
+	assert_line --index 0 --partial "$tag_msg"
+}
+
+@test "vrsn bump w. git tags: ignores --file and leaves it untouched" {
+	git checkout -b "$test_branch"
+	run vrsn bump patch --git-tag --file=VERSION
+	assert_success
+	assert_line --index 0 'git tag version bumped from 0.0.1 to 0.0.2'
+
+	# the version file is left untouched
+	new=$(head -n1 VERSION)
+	assert_equal "0.0.1" "$new"
+
+	# the new tag is written
+	new_tag=$(git --no-pager tag --list "0.0.2")
+	assert_equal "0.0.2" "$new_tag"
+
+	# no bump commit is created, HEAD is unchanged
+	run git --no-pager log --oneline -n 1
+	assert_line --index 0 --partial "initial commit"
+}
+
+@test "vrsn bump w. git tags: ignores version files defined in config" {
+	git checkout -b "$test_branch"
+
+	cfg_file="$BATS_TEST_DIRNAME/dual.toml"
+	run vrsn bump minor --config="$cfg_file"
+	assert_success
+	assert_line --index 0 'git tag version bumped from 0.0.1 to 0.1.0'
+
+	# the config lists VERSION and enables commit, but neither applies
+	new=$(head -n1 VERSION)
+	assert_equal "0.0.1" "$new"
+
+	run git --no-pager log --oneline -n 1
+	assert_line --index 0 --partial "initial commit"
+
+	# the tag message from config is applied to the new tag
+	run git --no-pager tag --list "0.1.0" -n1
+	assert_success
+	assert_line --index 0 --partial "$tag_msg"
 }

@@ -73,13 +73,11 @@ func runSet(ccmd *cobra.Command, args []string) error {
 	log.Debugf("config: %+v", conf)
 	log.Debugf("set command args: %s", args)
 
-	_, err = writeVersion(curDir, args, log, conf, writeConfig{
+	return writeVersion(curDir, args, log, conf, writeConfig{
 		resolve:            getSetVersion,
 		verb:               "set",
 		androidVersionCode: conf.Set.AndroidVersionCode,
 	})
-
-	return err
 }
 
 // getSetVersion validates the supplied version and returns its canonical form.

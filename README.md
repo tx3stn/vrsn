@@ -147,46 +147,6 @@ Pass the subcommand in `command` and any extra arguments or flags in `args`:
     args: patch
 ```
 
-The command's output is exposed as the `stdout` output, so you can chain calls.
-For example, to set the version in your version file(s) from the latest git tag:
-
-```yaml
-- uses: actions/checkout@v4
-- id: tag
-  uses: tx3stn/vrsn@1
-  with:
-    command: get
-    args: --git-tag
-- uses: tx3stn/vrsn@1
-  with:
-    command: set
-    args: ${{ steps.tag.outputs.stdout }}
-```
-
-By default the action runs the `latest` image. For reproducible runs, pin a
-specific version with the `version` input:
-
-```yaml
-- uses: tx3stn/vrsn@1
-  with:
-    command: check
-    version: 1.3.0
-```
-
-`vrsn` is versioned with bare semver tags (no `v` prefix), so pin the action with
-`@1` to track the latest v1 release, or `@1.3.0` for an exact version.
-
-If your version file lives in a subdirectory (e.g. a monorepo), point the action
-at it with `working-directory`:
-
-```yaml
-- uses: tx3stn/vrsn@1
-  with:
-    command: bump
-    args: minor
-    working-directory: ./services/my-service
-```
-
 ## Commands
 
 ### `--help`
@@ -281,25 +241,16 @@ vrsn bump minor --file AndroidManifest.xml --android-version-code
 `vrsn` errors without writing anything if the manifest has no
 `android:versionCode` attribute to update.
 
-Use git tags rather than a version file? Pass the `--git-tag` flag to read from
-the existing tags and write a new tag. e.g.:
+Use git tags rather than a version file? Pass the `--git-tag` flag to read the
+latest tag, bump it and write the new tag on the current commit. e.g.:
 
 ```bash
-vrsn bump --git-tag --tag-msg 'custom tag message'
+vrsn bump patch --git-tag --tag-msg 'custom tag message'
 ```
 
-Need a version file and a git tag? Combine the `--git-tag` flag with `--file`
-and `--commit` to bump the version in the file, commit it, and then tag that
-commit. e.g.:
-
-```bash
-vrsn bump patch --git-tag --file VERSION --commit
-```
-
-In this mode the version file is the source of truth for the current version,
-and the new version is used for both the file and the tag. The `--commit`
-option is required so the tag has a version bump commit to point at, you'll
-get an error without it.
+In this mode `vrsn` works purely with git tags. Any version files are ignored,
+so `--file`, the `files` config option and `--commit` have no effect, and
+nothing is written or committed other than the new tag.
 
 ### `set`
 
@@ -431,8 +382,7 @@ docker run --rm -it -v $PWD:/repo vrsn:latest check
 
 ## CI usage examples
 
-To auto increment a version in a dependabot pull request so you don't need to
-manually do it:
+### Auto increment version in a dependabot pull request
 
 1. Configure a [write access deploy key](https://circleci.com/docs/github-integration/#deploy-keys-and-user-keys)
 in CircleCI, as the bump version command will commit the version bump to the branch.
@@ -450,6 +400,36 @@ workflows:
          branches:
            only:
              - /^dependabot\/.*/
+```
+
+### Set version files from git tag
+
+The command's output is exposed as the `stdout` output, so you can chain calls.
+
+```yaml
+- uses: actions/checkout@v4
+- id: tag
+  uses: tx3stn/vrsn@1
+  with:
+    command: get
+    args: --git-tag
+- uses: tx3stn/vrsn@1
+  with:
+    command: set
+    args: ${{ steps.tag.outputs.stdout }}
+```
+
+### Independently version services in a monorepo
+
+If your version file lives in a subdirectory (e.g. a monorepo), point the action
+at it with `working-directory`:
+
+```yaml
+- uses: tx3stn/vrsn@1
+  with:
+    command: bump
+    args: minor
+    working-directory: ./services/my-service
 ```
 
 ## Limitations

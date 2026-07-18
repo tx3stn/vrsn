@@ -66,8 +66,8 @@ The semantic version in the version file will be updated in place.`, shortDescri
 			&flags.GitTag,
 			"git-tag",
 			false,
-			"Use git tags rather than a version file. "+
-				"Combine with --file and --commit to bump the version file, commit it and tag the commit.",
+			"Bump the git tag only: read the latest tag and write the new tag on the "+
+				"current commit. Version files (--file or the config `files` option) are ignored.",
 		)
 
 	cmd.Flags().
@@ -100,43 +100,21 @@ func runBump(ccmd *cobra.Command, args []string) error {
 	log.Debugf("config: %+v", conf)
 	log.Debugf("bump command args: %s", args)
 
-	err = ValidateBumpOpts(conf.Bump.GitTag, conf.Files, conf.Bump.Commit)
-	if err != nil {
-		return err
-	}
-
-	if conf.Bump.GitTag && len(conf.Files) == 0 {
+	// --git-tag operates purely on git tags: read the latest tag, bump it and
+	// write the new tag on the current commit. Any version files (from --file
+	// or the config `files` option) are ignored in this mode.
+	if conf.Bump.GitTag {
 		return bumpGitTag(curDir, args, log, conf.Bump.TagMsg)
 	}
 
-	newVersion, err := writeVersion(curDir, args, log, conf, writeConfig{
+	if err := writeVersion(curDir, args, log, conf, writeConfig{
 		resolve:            getNewVersion,
 		verb:               "bumped",
 		commit:             conf.Bump.Commit,
 		commitMsg:          conf.Bump.CommitMsg,
 		androidVersionCode: conf.Bump.AndroidVersionCode,
-	})
-	if err != nil {
+	}); err != nil {
 		return err
-	}
-
-	// When --git-tag is combined with --file the version file has been
-	// bumped and committed above, so the tag points at the bump commit.
-	if conf.Bump.GitTag {
-		if err := applyGitTag(curDir, newVersion, conf.Bump.TagMsg); err != nil {
-			return err
-		}
-
-		log.Infof("git tag %s added", newVersion)
-	}
-
-	return nil
-}
-
-// ValidateBumpOpts checks the combination of bump options is valid.
-func ValidateBumpOpts(gitTag bool, versionFiles []string, commit bool) error {
-	if gitTag && len(versionFiles) > 0 && !commit {
-		return ErrGitTagFileNoCommit
 	}
 
 	return nil
@@ -173,20 +151,20 @@ func writeVersion(
 	log logger.Basic,
 	conf config.Config,
 	opts writeConfig,
-) (string, error) {
+) error {
 	versionFiles, err := resolveVersionFiles(curDir, conf.Files, log, true)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	currentVersion, err := files.GetVersionsFromFiles(curDir, versionFiles, log)
 	if err != nil {
-		return "", fmt.Errorf("error getting version from files: %w", err)
+		return fmt.Errorf("error getting version from files: %w", err)
 	}
 
 	newVersion, err := opts.resolve(currentVersion, args)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	// Render the commit message before writing so an invalid template errors
@@ -195,7 +173,7 @@ func writeVersion(
 	if opts.commit {
 		commitMsg, err = template.Render(opts.commitMsg, newVersion)
 		if err != nil {
-			return "", fmt.Errorf("error rendering commit message: %w", err)
+			return fmt.Errorf("error rendering commit message: %w", err)
 		}
 	}
 
@@ -211,7 +189,7 @@ func writeVersion(
 
 		parsed, parseErr := version.Parse(core)
 		if parseErr != nil {
-			return "", fmt.Errorf(
+			return fmt.Errorf(
 				"error parsing new version for android version code: %w",
 				parseErr,
 			)
@@ -222,7 +200,7 @@ func writeVersion(
 
 	for _, versionFile := range versionFiles {
 		if err := files.WriteVersionToFile(curDir, versionFile, writeOpts); err != nil {
-			return "", fmt.Errorf("error writing version to file %s: %w", versionFile, err)
+			return fmt.Errorf("error writing version to file %s: %w", versionFile, err)
 		}
 
 		log.Debugf("%s version in %s", opts.verb, versionFile)
@@ -232,11 +210,11 @@ func writeVersion(
 
 	if opts.commit {
 		if err := commitVersionFiles(curDir, versionFiles, commitMsg, log); err != nil {
-			return "", err
+			return err
 		}
 	}
 
-	return newVersion, nil
+	return nil
 }
 
 // commitVersionFiles stages the bumped version files and commits them all in
