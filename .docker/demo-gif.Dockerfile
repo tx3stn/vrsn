@@ -1,4 +1,4 @@
-FROM ghcr.io/charmbracelet/vhs:v0.12.0
+FROM ghcr.io/charmbracelet/vhs:v0.12.1
 
 RUN rm -rf /var/lib/apt/lists/* && \
 	apt-get update --allow-releaseinfo-change && \
