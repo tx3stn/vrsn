@@ -1,10 +1,10 @@
-FROM alpine:3.24.2
+FROM alpine:3.24.4
 
 RUN apk upgrade --no-cache && \
 	apk add --no-cache \
-	curl=8.22.0-r0 \
+	curl=8.23.0-r0 \
 	git=2.54.0-r0 \
-	musl-dev=1.2.6-r2 && \
+	musl-dev=1.2.6-r3 && \
 	rm -rf /var/cache/apk/*
 
 ENV WORKDIR=/repo
