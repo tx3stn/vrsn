@@ -2,6 +2,8 @@ BINARY_NAME=vrsn
 DIR ?= ./...
 PWD ?= $(shell pwd)
 VERSION ?= $(shell head -n 1 VERSION)
+GOARCH ?= $(shell go env GOARCH)
+IMAGE ?= ${BINARY_NAME}:local
 
 define ajv-docker
 	docker run --rm -v "${PWD}":/repo weibeld/ajv-cli:5.0.0 ajv --spec draft7
@@ -20,8 +22,9 @@ build:
 	@CGO_ENABLED=0 go build -ldflags "-X github.com/tx3stn/vrsn/cmd.Version=${VERSION}" -o ${BINARY_NAME}
 
 .PHONY: build-image
-build-image: build
-	@docker build --tag ${BINARY_NAME}:local .
+build-image:
+	@CGO_ENABLED=0 GOOS=linux GOARCH=${GOARCH} go build -ldflags "-X github.com/tx3stn/vrsn/cmd.Version=${VERSION}" -o linux/${GOARCH}/${BINARY_NAME}
+	@docker build --platform linux/${GOARCH} --tag ${IMAGE} .
 
 .PHONY: generate-gifs
 generate-gifs: build

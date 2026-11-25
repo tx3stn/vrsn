@@ -22,9 +22,7 @@ jobs:
       # `docker run` uses it locally instead of pulling the published `latest`
       # tag (which does not yet contain new commands added on this branch).
       - name: build local image
-        run: |
-          make build
-          docker build --tag ghcr.io/tx3stn/vrsn:pr .
+        run: make build-image IMAGE=ghcr.io/tx3stn/vrsn:pr
       - name: seed a version file
         run: |
           mkdir -p action-test-tmp

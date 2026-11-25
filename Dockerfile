@@ -3,7 +3,7 @@ FROM alpine:3.24.4
 RUN apk upgrade --no-cache && \
 	apk add --no-cache \
 	curl=8.23.0-r0 \
-	git=2.54.0-r0 \
+	git=2.54.1-r0 \
 	musl-dev=1.2.6-r3 && \
 	rm -rf /var/cache/apk/*
 
@@ -13,6 +13,7 @@ RUN mkdir $WORKDIR && \
 
 WORKDIR ${WORKDIR}
 
-COPY --chmod=755 vrsn /usr/bin/vrsn
+ARG TARGETPLATFORM
+COPY --chmod=755 $TARGETPLATFORM/vrsn /usr/bin/vrsn
 
 ENTRYPOINT ["vrsn"]
